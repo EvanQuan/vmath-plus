@@ -60,11 +60,15 @@ git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/bundle/vim-math
 
 ## Usage
 
-There are 2 functions, one for normal mode and one for visual mode. By default,
-they are not mapped to anything so you can map them to whatever you like.
-I personally use:
+There is one function `g:mathematize#analyze`. By default, it is not mapped to
+anything so you can map them to whatever you like. I personally use:
 
 ```vim
-xnoremrap <leader>m :call g:mathematize#visual_analyze()<Return>
-nnoremap  <leader>m :call g:mathematize#normal_analyze()<Return>
+xnoremrap <silent> <leader>m y:call g:mathematize#analyze()<Return>
+nnoremap  <silent> <leader>m vipy:call g:mathematize#analyze()<Return> 
 ```
+
+ The function calculates the numbers in your current visual selection and its
+ contents must be yanked for the results to be saved in their respective
+ registers. As shown, I have normal mode mapped to calculate the numbers in the
+ current paragraph.

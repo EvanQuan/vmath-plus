@@ -1,22 +1,22 @@
 " ============================================================================
 " File:       mathematize.vim
 " Maintainer: https://github.com/EvanQuan/vim-mathematize/
-" Version:    1.0.0
+" Version:    2.0.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
 " ============================================================================
 
-"######################################################################
-"##                                                                  ##
-"##  To use:                                                         ##
-"##                                                                  ##
-"## xnoremrap <leader>m :call g:mathematize#visual_analyze()<Return> ##
-"## nnoremap  <leader>m :call g:mathematize#normal_analyze()<Return> ##
-"##                                                                  ##
-"##  (or whatever keys you prefer to remap these actions to)         ##
-"##                                                                  ##
-"######################################################################
+"############################################################################
+"##                                                                        ##
+"##  To use:                                                               ##
+"##                                                                        ##
+"## xnoremrap <silent> <leader>m y:call g:mathematize#analyze()<Return>    ##
+"## nnoremap  <silent> <leader>m vipy:call g:mathematize#analyze()<Return> ##
+"##                                                                        ##
+"##  (or whatever keys you prefer to remap these actions to)               ##
+"##                                                                        ##
+"############################################################################
 
 
 " If already loaded, we're done...
@@ -29,15 +29,6 @@ let g:mathematize#loaded = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-" Grab visual selection and do simple math on it...
-function! g:mathematize#visual_analyze()
-  call feedkeys("y:call s:mathematize#analyze()\<Return>")
-endfunction
-
-function! g:mathematize#normal_analyze()
-  call feedkeys("vipy:call s:mathematize#analyze()\<Return>")
-endfunction
-
 " What to consider a number...
 let s:NUM_PAT = '^[$€£¥]\?[+-]\?[$€£¥]\?\%(\d\{1,3}\%(,\d\{3}\)\+\|\d\+\)\%([.]\d\+\)\?\([eE][+-]\?\d\+\)\?$'
 
@@ -48,7 +39,7 @@ let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 let s:REPORT_GAP = 5  "spaces between components
 
 " Do simple math on current yank buffer...
-function! s:mathematize#analyze ()
+function! g:mathematize#analyze()
   "
   " Extract data from selection...
   let selection = getreg('')
