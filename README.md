@@ -5,9 +5,12 @@ extension of Damian Conway's [vmath
 plugin](https://github.com/thoughtstream/Damian-Conway-s-Vim-Setup/blob/master/plugin/vmath.vim).
 (He did all the hard work, not me.)
 
-This exists to additionally calculate products on top of the already
-implemented sum/average/min/max since I found myself needing to do so in my own
-work.
+I have two main goals for this plugin:
+
+1. Add extra functionality on top of the already implemented
+   sum/average/min/max in vmath.
+2. Avoid recursive key mappings, and expression mappings. I like my `nnoremap`
+   and `vnoremap` and hate having to change them to accommodate for plugins.
 
 ## Installation
 
@@ -43,4 +46,25 @@ git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/pack/plugin/sta
 
 ```bash
 git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/bundle/vim-mathematize
+```
+
+## Extended Features
+
+- Product
+
+### TODO
+
+- Mode (o)
+- Median (m)
+- Range (r)
+
+## Usage
+
+There are 2 functions, one for normal mode and one for visual mode. By default,
+they are not mapped to anything so you can map them to whatever you like.
+I personally use:
+
+```vim
+xnoremrap <leader>m :call g:mathematize#visual_analyze()<Return>
+nnoremap  <leader>m :call g:mathematize#normal_analyze()<Return>
 ```
