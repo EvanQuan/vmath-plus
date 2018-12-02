@@ -50,9 +50,12 @@ git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/bundle/vim-math
 
 ## Extended Features
 
-- Product (p)
-- Range (r)
-- Median (m)
+On top of calculating the sum, average, minimum, and maximum, mathematize.vim also calculates the following additional metrics:
+- Product
+- Range
+- Median
+
+Report label spacing expands to fill the window width. For wide enough windows, the labels expand to full words.
 
 ## Usage
 
