@@ -1,7 +1,7 @@
 " ============================================================================
 " File:       mathematize.vim
 " Maintainer: https://github.com/EvanQuan/vim-mathematize/
-" Version:    2.1.1
+" Version:    2.2.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -36,7 +36,13 @@ let s:NUM_PAT = '^[$€£¥]\?[+-]\?[$€£¥]\?\%(\d\{1,3}\%(,\d\{3}\)\+\|\d\+\
 let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 
 " How widely to space the report components...
-let s:REPORT_GAP = 4  "spaces between components
+" Note: Report gap is dynamically calculated based on window width
+"
+" let s:REPORT_GAP = 5  "spaces between components
+
+" Window width until report labels use full words
+"
+let s:EXPAND_FULL_LABEL_WIDTH = 115
 
 " Do simple math on current yank buffer...
 function! g:mathematize#analyze()
@@ -70,7 +76,7 @@ function! g:mathematize#analyze()
   let max = s:tidy( s:max(numbers) )
   let prd = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
   let med = s:median(numbers)
-  let rng = s:tidy ( max - min )
+  let rng = s:tidy ( str2float(max) - str2float(min) )
 
   " Convert temporals...
   if temporal
@@ -97,16 +103,27 @@ function! g:mathematize#analyze()
   call setreg('', @s )
 
   " Report...
-  let gap = repeat(" ", s:REPORT_GAP)
+  " Gap depends on window width
+  let expand_full_labels = winwidth(0) >= s:EXPAND_FULL_LABEL_WIDTH
+  let report_labels = expand_full_labels ? ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
+                                        \ 'p̲roduct', 'm̲edian', 'r̲ange'] :
+                                        \ ['s̲um', 'a̲vg', 'min̲', 'max̲',
+                                        \ 'p̲rd', 'm̲ed', 'r̲ng']
+  let label_space = len( join(report_labels) ) + len(report_labels) * 2
+  let number_space = len(sum) + len(max) + len(min) + len(prd) + len(med) + len(rng)
+  let used_space = number_space + label_space
+  let available_space = winwidth(0) - used_space
+  let report_gap = float2nr(available_space * 1.0 / len(report_labels))
+  let gap = repeat(" ", report_gap)
   redraw
   echo
-  \    's̲um: ' . @s . gap
-  \  . 'a̲vg: ' . @a . gap
-  \  . 'min̲: ' . @n . gap
-  \  . 'max̲: ' . @x . gap
-  \  . 'p̲rd: ' . @p . gap
-  \  . 'm̲ed: ' . @m . gap
-  \  . 'r̲ng: ' . @r . gap
+  \    report_labels[0] . ': ' . @s . gap
+  \  . report_labels[1] . ': ' . @a . gap
+  \  . report_labels[2] . ': ' . @n . gap
+  \  . report_labels[3] . ': ' . @x . gap
+  \  . report_labels[4] . ': ' . @p . gap
+  \  . report_labels[5] . ': ' . @m . gap
+  \  . report_labels[6] . ': ' . @r
 
 endfunction
 
@@ -187,7 +204,9 @@ function! s:median (numbers)
   let length = len(a:numbers)
 
   " Compute average...
-  if length % 2 == 0 " Even
+  if length == 0
+    let med = 0
+  elseif length % 2 == 0 " Even
     let med = (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
   else " Odd
     let med = sorted_numbers[(length - 1)/2]
