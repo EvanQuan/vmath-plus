@@ -1,7 +1,7 @@
 " ============================================================================
 " File:       mathematize.vim
 " Maintainer: https://github.com/EvanQuan/vim-mathematize/
-" Version:    2.1.0
+" Version:    2.1.1
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -186,17 +186,12 @@ function! s:median (numbers)
 
   let length = len(a:numbers)
 
-  echom string(a:numbers)
-  echom string(sorted_numbers)
-
   " Compute average...
   if length % 2 == 0 " Even
     let med = (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
   else " Odd
     let med = sorted_numbers[(length - 1)/2]
   endif
-
-  echom string(med)
 
   " Determine significant figures...
   let min_decimals = 15
