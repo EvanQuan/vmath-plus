@@ -1,7 +1,7 @@
 " ============================================================================
 " File:       mathematize.vim
 " Maintainer: https://github.com/EvanQuan/vim-mathematize/
-" Version:    2.0.0
+" Version:    2.1.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -36,7 +36,7 @@ let s:NUM_PAT = '^[$€£¥]\?[+-]\?[$€£¥]\?\%(\d\{1,3}\%(,\d\{3}\)\+\|\d\+\
 let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 
 " How widely to space the report components...
-let s:REPORT_GAP = 5  "spaces between components
+let s:REPORT_GAP = 4  "spaces between components
 
 " Do simple math on current yank buffer...
 function! g:mathematize#analyze()
@@ -69,6 +69,8 @@ function! g:mathematize#analyze()
   let min = s:tidy( s:min(numbers) )
   let max = s:tidy( s:max(numbers) )
   let prd = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
+  let med = s:median(numbers)
+  let rng = s:tidy ( max - min )
 
   " Convert temporals...
   if temporal
@@ -77,6 +79,7 @@ function! g:mathematize#analyze()
     let min = s:tidystr( s:sec2str(min) )
     let max = s:tidystr( s:sec2str(max) )
     let prd = s:tidystr( s:sec2str(prd) )
+    let med = s:tidystr( s:sec2str(med) )
  endif
 
   " En-register metrics...
@@ -84,8 +87,11 @@ function! g:mathematize#analyze()
   call setreg('a', avg )
   call setreg('x', max )
   call setreg('n', min )
-  call setreg('r', string(min) . ' to ' . string(max) )
+  " This was the default
+  " call setreg('r', string(min) . ' to ' . string(max) )
   call setreg('p', prd )
+  call setreg('m', med )
+  call setreg('r', rng )
 
   " Default paste buffer should depend on original contents (TODO)
   call setreg('', @s )
@@ -99,6 +105,8 @@ function! g:mathematize#analyze()
   \  . 'min̲: ' . @n . gap
   \  . 'max̲: ' . @x . gap
   \  . 'p̲rd: ' . @p . gap
+  \  . 'm̲ed: ' . @m . gap
+  \  . 'r̲ng: ' . @r . gap
 
 endfunction
 
@@ -169,6 +177,39 @@ function! s:average (numbers)
   " Adjust answer...
   return min_decimals > 0 ? printf('%0.'.min_decimals.'f', avg)
   \                       : string(avg)
+endfunction
+
+" Compute the median with meaningful number of decimal places
+function! s:median (numbers)
+  " Sort list
+  let sorted_numbers = sort(a:numbers, 'f')
+
+  let length = len(a:numbers)
+
+  echom string(a:numbers)
+  echom string(sorted_numbers)
+
+  " Compute average...
+  if length % 2 == 0 " Even
+    let med = (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
+  else " Odd
+    let med = sorted_numbers[(length - 1)/2]
+  endif
+
+  echom string(med)
+
+  " Determine significant figures...
+  let min_decimals = 15
+  for num in a:numbers
+    let decimals = strlen(matchstr(string(num), '[.]\d\+$')) - 1
+    if decimals < min_decimals
+      let min_decimals = decimals
+    endif
+  endfor
+
+  " Adjust answer...
+  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', med)
+  \                       : string(med)
 endfunction
 
 " Reimplement these because the builtins don't handle floats (!!!)

@@ -50,13 +50,9 @@ git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/bundle/vim-math
 
 ## Extended Features
 
-- Product
-
-### TODO
-
-- Mode (o)
-- Median (m)
+- Product (p)
 - Range (r)
+- Median (m)
 
 ## Usage
 
