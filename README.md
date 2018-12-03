@@ -1,9 +1,14 @@
-# :sunrise_over_mountains: vim-mathematize
+# :sunrise_over_mountains: vmath-plus
 
 This plugin allows you to do simple math on visual regions. It is an
 extension of Damian Conway's [vmath
 plugin](https://github.com/thoughtstream/Damian-Conway-s-Vim-Setup/blob/master/plugin/vmath.vim).
+
 (He did all the hard work, not me.)
+
+Here is a video demonstration of the plugin in use from OSCON 2013:
+
+[![](https://img.youtube.com/vi/aHm36-na4-4/0.jpg)](https://www.youtube.com/watch?v=aHm36-na4-4&feature=youtu.be&t=1792)
 
 I have two main goals for this plugin:
 
@@ -20,54 +25,70 @@ support:
 #### Vim 8 Native Package Manager
 
 ```bash
-mkdir ~/.vim/pack/plugin/start/vim-mathematize
-git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/pack/plugin/start/vim-mathematize
+mkdir ~/.vim/pack/plugin/start/vmath-plus
+git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/pack/plugin/start/vmath-plus
 ```
 
 #### [Vim-Plug](https://github.com/junegunn/vim-plug)
 
-1. Add `Plug 'EvanQuan/vim-mathematize'` to your vimrc file.
+1. Add `Plug 'EvanQuan/vmath-plus'` to your vimrc file.
 2. Reload your vimrc or restart.
 3. Run `:PlugInstall`
 
 #### [Vundle](https://github.com/VundleVim/Vundle.vim)
 
-1. Add `Plugin 'EvanQuan/vim-mathematize'` to your vimrc file.
+1. Add `Plugin 'EvanQuan/vmath-plus'` to your vimrc file.
 2. Reload your vimrc or restart.
 3. Run `:BundleInstall`
 
 #### [NeoBundle](https://github.com/Shougo/neobundle.vim)
 
-1. Add `NeoBundle 'EvanQuan/vim-mathematize'` to your vimrc file.
+1. Add `NeoBundle 'EvanQuan/vmath-plus'` to your vimrc file.
 2. Reload your vimrc or restart.
 3. Run `:NeoUpdate`
 
 #### [Pathogen](https://github.com/tpope/vim-pathogen)
 
 ```bash
-git clone https://github.com/EvanQuan/vim-mathematize.git ~/.vim/bundle/vim-mathematize
+git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/bundle/vmath-plus
 ```
-
-## Extended Features
-
-On top of calculating the sum, average, minimum, and maximum, mathematize.vim also calculates the following additional metrics:
-- Product
-- Range
-- Median
-
-Report label spacing expands to fill the window width. For wide enough windows, the labels expand to full words.
 
 ## Usage
 
-There is one function `g:mathematize#analyze`. By default, it is not mapped to
+There is one function `g:vmath_plus#analyze`. By default, it is not mapped to
 anything so you can map them to whatever you like. I personally use:
 
 ```vim
-xnoremrap <silent> <leader>m y:call g:mathematize#analyze()<Return>
-nnoremap  <silent> <leader>m vipy:call g:mathematize#analyze()<Return> 
+xnoremrap <silent> <leader>m y:call g:vmath_plus#analyze()<Return>
+nnoremap  <silent> <leader>m vipy:call g:vmath_plus#analyze()<Return> 
 ```
 
- The function calculates the numbers in your current visual selection and its
- contents must be yanked for the results to be saved in their respective
- registers. As shown, I have normal mode mapped to calculate the numbers in the
- current paragraph.
+The function calculates the numbers in your current visual selection (visual/line/block mode).
+As shown, I have normal mode mapped to calculate the numbers in the current paragraph.
+
+The result will be outputed in the form:
+
+```
+s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3
+```
+
+The results are stored in the following registers:
+
+| Register | Value   |
+|:--------:|:-------:|
+| s        | sum     |
+| a        | average |
+| n        | minimum |
+| x        | maximum |
+| m        | median  |
+| p        | product |
+| r        | range   |
+| c        | count   |
+ 
+which can be pasted with `"<register>p` in normal mode.
+ 
+ # References
+
+ * http://www.oscon.com/oscon2013/public/schedule/detail/28875
+ * https://docs.google.com/file/d/0Bx3f0gFZh5Jqc0MtcUstV3BKdTQ/edit
+ * http://www.youtube.com/watch?v=aHm36-na4-4
