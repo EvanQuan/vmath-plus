@@ -116,8 +116,8 @@ The report message is dynamically calculated based on the window width at the
 time of the report. Spacing is increased to expand the window, and if wide
 enough, the value labels are expanded to their full names.
 
-## References
+## "More Instantly Better Vim" at OSCON 2013
 
-- http://www.oscon.com/oscon2013/public/schedule/detail/28875
-- https://docs.google.com/file/d/0Bx3f0gFZh5Jqc0MtcUstV3BKdTQ/edit
-- http://www.youtube.com/watch?v=aHm36-na4-4
+- [Event](http://www.oscon.com/oscon2013/public/schedule/detail/28875)
+- [Files](https://docs.google.com/file/d/0Bx3f0gFZh5Jqc0MtcUstV3BKdTQ/edit)
+- [Presentation](http://www.youtube.com/watch?v=aHm36-na4-4)
