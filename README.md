@@ -55,15 +55,19 @@ git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/bundle/vmath-plus
 
 ## Usage
 
-There are two functions `g:vmath_plus#analyze()`, and `g:vmath_plus#report`. By
-default, they are not mapped to anything so you can map them to whatever you
+There are two functions `g:vmath_plus#analyze()`, and `g:vmath_plus#report()`.
+By default, they are not mapped to anything so you can map them to whatever you
 like. I personally use:
 
 ```vim
+" Analyze
+"
 xnoremrap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>
 nnoremap  <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return> 
 
-noremrap <silent> <leader>mr :call g:vmath_plus#report()<Return>
+" Report
+"
+noremrap  <silent> <leader>mr :call g:vmath_plus#report()<Return>
 ```
 
 ### Analyze
