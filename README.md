@@ -4,8 +4,6 @@ This plugin allows you to do simple math on visual regions. It is an
 extension of Damian Conway's [vmath
 plugin](https://github.com/thoughtstream/Damian-Conway-s-Vim-Setup/blob/master/plugin/vmath.vim).
 
-(He did all the hard work, not me.)
-
 Here is a video demonstration of the plugin in use from OSCON 2013:
 
 [![](https://img.youtube.com/vi/aHm36-na4-4/0.jpg)](https://www.youtube.com/watch?v=aHm36-na4-4&feature=youtu.be&t=1792)
@@ -53,21 +51,29 @@ git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/pack/plugin/start/vm
 git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/bundle/vmath-plus
 ```
 
-## Usage
+### Functions
 
-There are two functions `g:vmath_plus#analyze()`, and `g:vmath_plus#report()`.
+This plugin provides 4 functions:
+- `g:vmath_plus#analyze()`
+- `g:vmath_plus#analyze_buffer()`
+- `g:vmath_plus#report()`
+- `g:vmath_plus#report_buffer()`
+
 By default, they are not mapped to anything so you can map them to whatever you
 like. I personally use:
 
 ```vim
 " Analyze
 "
-xnoremrap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>
-nnoremap  <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return> 
+xnoremap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>
+xnoremap <silent> <leader>mba y:call g:vmath_plus#analyze_buffer()<Return>
+nnoremap <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return>
+nnoremap <silent> <leader>mba vipy:call g:vmath_plus#analyze_buffer()<Return>
 
 " Report
 "
-noremrap  <silent> <leader>mr :call g:vmath_plus#report()<Return>
+noremap <silent> <leader>mr :call g:vmath_plus#report()<Return>
+noremap <silent> <leader>mbr :call g:vmath_plus#report_buffer()<Return>
 ```
 
 ### Analyze
@@ -106,6 +112,11 @@ These values are then stored in the following registers:
 
 which can be pasted with `"<register>p` in normal mode.
 
+`g:vmath_plus#analyze_buffer()` does the same thing but outputs the result in
+a small read-only buffer at the bottom of the screen instead of echoing it.
+The buffer is persistently open until you manually close it, and lets you copy
+and paste portions of it as you please.
+
 ### Report
 
 `g:vmath_plus#report()` reports the results of the most recent analysis. Since
@@ -116,6 +127,11 @@ register contents.
 The report message is dynamically calculated based on the window width at the
 time of the report. Spacing is increased to expand the window, and if wide
 enough, the value labels are expanded to their full names.
+
+`g:vmath_plus#report_buffer()` does the same thing but outputs the result in
+a small read-only buffer at the bottom of the screen instead of echoing it.
+The buffer is persistently open until you manually close it, and lets you copy
+and paste portions of it as you please.
 
 ### Report variables
 
@@ -133,10 +149,13 @@ g:vmath_plus#count
 g:vmath_plus#stn_dev
 ```
 
-These values are updated to their proper values on `g:vmath_plus#analyze()` and
-`g:vmath_plus#report()` in case you decide to edit them for whatever reason.
+These values are updated to their proper values on any `vmath_plus` function
+call.
 
 ## "More Instantly Better Vim" at OSCON 2013
+
+More information about the talk from which the original `vmath` plugin was
+presented.
 
 - [Event](http://www.oscon.com/oscon2013/public/schedule/detail/28875)
 - [Files](https://docs.google.com/file/d/0Bx3f0gFZh5Jqc0MtcUstV3BKdTQ/edit)

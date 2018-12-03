@@ -1,24 +1,14 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.3.0
+" Version:    3.4.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
+"
+" Press ENTER or za to toggle category folding/unfolding.
 " ============================================================================
-
-"############################################################################
-"##                                                                        ##
-"##  To use:                                                               ##
-"##                                                                        ##
-"## xnoremrap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>    ##
-"## nnoremap  <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return> ##
-"## noremap   <silent> <leader>mr vipy:call g:vmath_plus#report()<Return>  ##
-"##                                                                        ##
-"##  (or whatever keys you prefer to remap these actions to)               ##
-"##                                                                        ##
-"############################################################################
-
+" Set up {{{
 
 " If already loaded, we're done...
 if exists("g:vmath_plus#loaded")
@@ -29,6 +19,11 @@ let g:vmath_plus#loaded = 1
 " Preserve external compatibility options, then enable full vim compatibility...
 let s:save_cpo = &cpo
 set cpo&vim
+
+" }}}
+" Script variables {{{
+
+" Constants {{{
 
 " What to consider a number...
 let s:NUM_PAT = '^[$€£¥]\?[+-]\?[$€£¥]\?\%(\d\{1,3}\%(,\d\{3}\)\+\|\d\+\)\%([.]\d\+\)\?\([eE][+-]\?\d\+\)\?$'
@@ -50,6 +45,9 @@ let s:FULL_LABELS = ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
 let s:SHORT_LABELS = ['s̲um', 'a̲vg', 'min̲', 'max̲',
                     \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt', 'std̲']
 
+" }}}
+" Metric values {{{
+
 " Last analyze report is saved
 " Script variables ensure that report echoes the correct values even if the
 " registers are changed after the analisis.
@@ -62,21 +60,15 @@ let s:pro = 0
 let s:ran = 0
 let s:cnt = 0
 let s:std = 0
-" Global variables allow user to use analysis values however they want without
-" needing to check register contents. They are restored to script variables on
-" report in case the user tampers with them.
-let g:vmath_plus#sum = 0
-let g:vmath_plus#average = 0
-let g:vmath_plus#minimum = 0
-let g:vmath_plus#maximum = 0
-let g:vmath_plus#median = 0
-let g:vmath_plus#range = 0
-let g:vmath_plus#count = 0
-let g:vmath_plus#stn_dev = 0
 
-" Do simple math on current yank buffer...
-function! g:vmath_plus#analyze()
-  "
+" }}}
+
+" }}}
+" Script functions {{{
+
+function! s:analyze() " {{{
+  " Do simple math on current yank buffer...
+"
   " Extract data from selection...
   let selection = getreg('')
   let raw_numbers = filter(split(selection), 'v:val =~ s:NUM_PAT')
@@ -136,12 +128,10 @@ function! g:vmath_plus#analyze()
 
   " Default paste buffer should depend on original contents (TODO)
   call setreg('', @s )
+endfunction " }}}
+" Report {{{
 
-  call g:vmath_plus#report()
-
-endfunction
-
-function! g:vmath_plus#report()
+function! s:get_report_message() " {{{
   " Store global merics in case of tampering
   let g:vmath_plus#sum = s:sum
   let g:vmath_plus#average = s:avg
@@ -161,8 +151,8 @@ function! g:vmath_plus#report()
   let available_space = winwidth(0) - used_space
   let report_gap = max([1, float2nr(available_space * 1.0 / len(report_labels))])
   let gap = repeat(" ", report_gap)
-  redraw
-  echo
+  " redraw " What is the purpose of redrawing?
+  return
   \    report_labels[0] . ': ' . s:sum . gap
   \  . report_labels[1] . ': ' . s:avg . gap
   \  . report_labels[2] . ': ' . s:min . gap
@@ -172,10 +162,52 @@ function! g:vmath_plus#report()
   \  . report_labels[6] . ': ' . s:ran . gap
   \  . report_labels[7] . ': ' . s:cnt . gap
   \  . report_labels[8] . ': ' . s:std
-endfunction
+endfunction " }}}
+function! s:split_report() " {{{
+  let s:output_buffer_name = "VMath Report"
+  let s:output_buffer_filetype = "output"
+  " reuse existing buffer window if it exists otherwise create a new one
+  if !exists("s:buf_nr") || !bufexists(s:buf_nr)
+    silent execute 'botright new ' . s:output_buffer_name
+    let s:buf_nr = bufnr('%')
+  elseif bufwinnr(s:buf_nr) == -1
+    silent execute 'botright new'
+    silent execute s:buf_nr . 'buffer'
+  elseif bufwinnr(s:buf_nr) != bufwinnr('%')
+    silent execute bufwinnr(s:buf_nr) . 'wincmd w'
+  endif
+
+  silent execute "setlocal filetype=" . s:output_buffer_filetype
+  setlocal bufhidden=delete
+  setlocal buftype=nofile
+  setlocal noswapfile
+  setlocal nobuflisted
+  setlocal winfixheight
+  setlocal cursorline " make it easy to distinguish
+  setlocal nonumber
+  setlocal norelativenumber
+  setlocal showbreak=""
+
+  " clear the buffer and make it modifiable for terminal output
+  setlocal noreadonly
+  setlocal modifiable
+  %delete _
+
+  execute ".! echo '" . s:get_report_message() . "'"
+
+  " decrease window size
+  execute 'resize' . line('$')
+
+  " make the buffer non modifiable
+  setlocal readonly
+  setlocal nomodifiable
+endfunction " }}}
+
+" }}}
+" Time {{{
 
 " Convert times to raw seconds...
-function! s:str2sec(time)
+function! s:str2sec(time) " {{{
   let components = split(a:time, ':')
   let multipliers = [60, 60*60, 60*60*24]
   let duration = str2float(remove(components, -1))
@@ -183,10 +215,9 @@ function! s:str2sec(time)
     let duration += 1.0 * remove(multipliers,0) * remove(components, -1)
   endwhile
   return string(duration)
-endfunction
-
+endfunction " }}}
 " Convert raw seconds to times...
-function! s:sec2str(duration)
+function! s:sec2str(duration) " {{{
   let fraction = str2float(a:duration)
   let duration = str2nr(a:duration)
   let fraction -= duration
@@ -211,23 +242,24 @@ function! s:sec2str(duration)
   endif
 
   return printf('%d:%02d:%02d:%02d', duration, hrs, s:min, sec) . (fraction > 0 ? fracstr : '')
-endfunction
+endfunction " }}}
+
+" }}}
+" Tidy Results {{{
 
 " Prettify numbers...
-function! s:tidy(number)
+function! s:tidy(number) " {{{
   let tidied = printf('%g', a:number)
   return substitute(tidied, '[.]0\+$', '', '')
-endfunction
-
-function! s:tidystr(str)
+endfunction " }}}
+function! s:tidystr(str) " {{{
   return substitute(a:str, '[.]0\+$', '', '')
-endfunction
-
-" Find the significant figures from list of numbers
-" @param List[string] of numbers
-" @param string of answer to round
-" @return string of answer rounded to alotted decimal places
-function! s:significant_figures(numbers, answer)
+endfunction " }}}
+function! s:significant_figures(numbers, answer) " {{{
+  " Find the significant figures from list of numbers
+  " @param List[string] of numbers
+  " @param string of answer to round
+  " @return string of answer rounded to alotted decimal places
   let min_decimals = 15
   for num in a:numbers
     let decimals = strlen(matchstr(string(num), '[.]\d\+$')) - 1
@@ -238,12 +270,17 @@ function! s:significant_figures(numbers, answer)
   " Adjust answer...
   return min_decimals > 0 ? printf('%0.'.min_decimals.'f', a:answer)
   \                       : string(a:answer)
-endfunction
+endfunction " }}}
 
-" Compute the standard deviation
-" @param List[string] of numbers
-" @return float of standard deviation unrounded
-function! s:standard_deviation_raw(numbers)
+" }}}
+" Metrics {{{
+
+" Standard deviation {{{
+
+function! s:standard_deviation_raw(numbers) " {{{
+  " Compute the standard deviation
+  " @param List[string] of numbers
+  " @return float of standard deviation unrounded
   let length = len(a:numbers)
 
   if length <= 1
@@ -257,37 +294,40 @@ function! s:standard_deviation_raw(numbers)
     let std += (num * 1.0 - mean) * (num * 1.0 - mean)
   endfor
   return sqrt(std / ((length - 1) * 1.0))
-endfunction
-
-" Compute standard deviation with meaningful number of decimal places...
-" @param List[string] of numbers
-" @return string of standard deviation with correct significant figures
-function! s:standard_deviation(numbers)
+endfunction " }}}
+function! s:standard_deviation(numbers) " {{{
+  " Compute standard deviation with meaningful number of decimal places...
+  " @param List[string] of numbers
+  " @return string of standard deviation with correct significant figures
   let s:std = s:standard_deviation_raw(a:numbers)
   return s:significant_figures(a:numbers, s:std)
-endfunction
+endfunction " }}}
 
-" Compute average unrounded
-" @param List[float] of numbers
-" @return float of average unrounded
-function! s:average_raw(numbers)
-  " Compute average...
+" }}}
+" Average {{{
+
+function! s:average_raw(numbers) " {{{
+  " Compute average unrounded
+  " @param List[float] of numbers
+  " @return float of average unrounded
   let summation = eval( len(a:numbers) ? join( a:numbers, ' + ') : '0' )
   return 1.0 * summation / max([len(a:numbers), 1])
-endfunction
-
-" Compute average with meaningful number of decimal places...
-" @param List[float] of numbers
-" @return string of average with correct significant figures
-function! s:average(numbers)
+endfunction " }}}
+function! s:average(numbers) " {{{
+  " Compute average with meaningful number of decimal places...
+  " @param List[float] of numbers
+  " @return string of average with correct significant figures
   let s:avg = s:average_raw(a:numbers)
   return s:significant_figures(a:numbers, s:avg)
-endfunction
+endfunction " }}}
 
-" Compute average with meaningful number of decimal places...
-" @param List[string] of numbers
-" @return float of median unrounded
-function! s:median_raw(numbers)
+" }}}
+" Median {{{
+
+function! s:median_raw(numbers) " {{{
+  " Compute average with meaningful number of decimal places...
+  " @param List[string] of numbers
+  " @return float of median unrounded
   " Sort list
   let sorted_numbers = sort(a:numbers, 'f')
 
@@ -300,20 +340,20 @@ function! s:median_raw(numbers)
   else " Odd
     return sorted_numbers[(length - 1)/2]
   endif
-endfunction
-
-" Compute the median with meaningful number of decimal places
-" @param List[string] of numbers
-" @return string of median with correct significant figures
-function! s:median(numbers)
+endfunction " }}}
+function! s:median(numbers) " {{{
+  " Compute the median with meaningful number of decimal places
+  " @param List[string] of numbers
+  " @return string of median with correct significant figures
   let s:med = s:median_raw(a:numbers)
   return s:significant_figures(a:numbers, s:med)
-endfunction
+endfunction " }}}
 
-" Reimplement these because the builtins don't handle floats (!!!)
-" @param List[string] of numbers
-" @return string of maximum
-function! s:maximum(numbers)
+" }}}
+function! s:maximum(numbers) " {{{
+  " Reimplement these because the builtins don't handle floats (!!!)
+  " @param List[string] of numbers
+  " @return string of maximum
   if !len(a:numbers)
     return 0
   endif
@@ -325,11 +365,10 @@ function! s:maximum(numbers)
     endif
   endfor
   return maxnum
-endfunction
-
-" @param List[string] of numbers
-" @return string of minimum
-function! s:minimum(numbers)
+endfunction " }}}
+function! s:minimum(numbers) " {{{
+  " @param List[string] of numbers
+  " @return string of minimum
   if !len(a:numbers)
     return 0
   endif
@@ -341,8 +380,58 @@ function! s:minimum(numbers)
     endif
   endfor
   return minnum
+endfunction " }}}
+
+" }}}
+
+" }}}
+" Global variables {{{
+
+" Global variables allow user to use analysis values however they want without
+" needing to check register contents. They are restored to script variables on
+" report in case the user tampers with them.
+let g:vmath_plus#sum = 0
+let g:vmath_plus#average = 0
+let g:vmath_plus#minimum = 0
+let g:vmath_plus#maximum = 0
+let g:vmath_plus#median = 0
+let g:vmath_plus#range = 0
+let g:vmath_plus#count = 0
+let g:vmath_plus#stn_dev = 0
+
+" }}}
+" Global functions {{{
+
+" Analyize {{{
+
+function! g:vmath_plus#analyze()
+  call s:analyze()
+  call g:vmath_plus#report()
 endfunction
 
+function! g:vmath_plus#analyze_buffer()
+  call s:analyze()
+  call g:vmath_plus#report_buffer()
+endfunction
+
+" }}}
+" Report {{{
+
+function! g:vmath_plus#report()
+  " redraw
+  echo s:get_report_message()
+endfunction
+
+function! g:vmath_plus#report_buffer()
+  call s:split_report()
+endfunction
+
+" }}}
+
+" }}}
+" Tear down {{{
 
 " Restore previous external compatibility options
 let &cpo = s:save_cpo
+
+" }}}
