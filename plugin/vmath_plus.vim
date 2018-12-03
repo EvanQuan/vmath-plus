@@ -1,7 +1,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.1.0
+" Version:    3.2.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -51,6 +51,8 @@ let s:SHORT_LABELS = ['s̲um', 'a̲vg', 'min̲', 'max̲',
                     \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt']
 
 " Last analyze report is saved
+" Script variables ensure that report echoes the correct values even if the
+" registers are changed after the analisis.
 let s:sum = 0
 let s:avg = 0
 let s:min = 0
@@ -59,7 +61,16 @@ let s:med = 0
 let s:pro = 0
 let s:ran = 0
 let s:cnt = 0
-let s:report_values = [0, 0, 0, 0, 0, 0, 0, 0]
+" Global variables allow user to use analysis values however they want without
+" needing to check register contents. They are restored to script variables on
+" report in case the user tampers with them.
+let g:vmath_plus#sum = 0
+let g:vmath_plus#average = 0
+let g:vmath_plus#minimum = 0
+let g:vmath_plus#maximum = 0
+let g:vmath_plus#median = 0
+let g:vmath_plus#range = 0
+let g:vmath_plus#count = 0
 
 " Do simple math on current yank buffer...
 function! g:vmath_plus#analyze()
@@ -118,9 +129,6 @@ function! g:vmath_plus#analyze()
   call setreg('r', s:ran )
   call setreg('c', s:cnt )
 
-  " Save metrics for report
-  let s:report_values = [s:sum, s:avg, s:min, s:max, s:med, s:pro, s:ran, s:cnt]
-
   " Default paste buffer should depend on original contents (TODO)
   call setreg('', @s )
 
@@ -129,6 +137,14 @@ function! g:vmath_plus#analyze()
 endfunction
 
 function! g:vmath_plus#report()
+  " Store global merics in case of tampering
+  let g:vmath_plus#sum = s:sum
+  let g:vmath_plus#average = s:avg
+  let g:vmath_plus#minimum = s:min
+  let g:vmath_plus#maximum = s:max
+  let g:vmath_plus#median = s:med
+  let g:vmath_plus#range = s:ran
+  let g:vmath_plus#count = s:cnt
   " Report...
   " Gap depends on window width
   let expand_full_labels = winwidth(0) >= s:EXPAND_FULL_LABEL_WIDTH
@@ -141,14 +157,14 @@ function! g:vmath_plus#report()
   let gap = repeat(" ", report_gap)
   redraw
   echo
-  \    report_labels[0] . ': ' . s:report_values[0] . gap
-  \  . report_labels[1] . ': ' . s:report_values[1] . gap
-  \  . report_labels[2] . ': ' . s:report_values[2] . gap
-  \  . report_labels[3] . ': ' . s:report_values[3] . gap
-  \  . report_labels[4] . ': ' . s:report_values[4] . gap
-  \  . report_labels[5] . ': ' . s:report_values[5] . gap
-  \  . report_labels[6] . ': ' . s:report_values[6] . gap
-  \  . report_labels[7] . ': ' . s:report_values[7]
+  \    report_labels[0] . ': ' . s:sum . gap
+  \  . report_labels[1] . ': ' . s:avg . gap
+  \  . report_labels[2] . ': ' . s:min . gap
+  \  . report_labels[3] . ': ' . s:max . gap
+  \  . report_labels[4] . ': ' . s:med . gap
+  \  . report_labels[5] . ': ' . s:pro . gap
+  \  . report_labels[6] . ': ' . s:ran . gap
+  \  . report_labels[7] . ': ' . s:cnt
 endfunction
 
 " Convert times to raw seconds...

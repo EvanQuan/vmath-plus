@@ -116,6 +116,24 @@ The report message is dynamically calculated based on the window width at the
 time of the report. Spacing is increased to expand the window, and if wide
 enough, the value labels are expanded to their full names.
 
+### Report variables
+
+The last analysis results are stored in global variables for you to do whatever
+you want with them, such as making your own commands or functions. They are as follows:
+
+```vim
+g:vmath_plus#sum
+g:vmath_plus#average
+g:vmath_plus#minimum
+g:vmath_plus#maximum
+g:vmath_plus#median
+g:vmath_plus#range
+g:vmath_plus#count
+```
+
+These values are updated to their proper values on `g:vmath_plus#analyze()` and
+`g:vmath_plus#report()` in case you decide to edit them for whatever reason.
+
 ## "More Instantly Better Vim" at OSCON 2013
 
 - [Event](http://www.oscon.com/oscon2013/public/schedule/detail/28875)
