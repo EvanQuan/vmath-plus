@@ -86,7 +86,7 @@ For example, suppose you were to visually select the numbers:
 
 ```
 1
-1
+1.0
 4
 ```
 
@@ -149,8 +149,9 @@ g:vmath_plus#count
 g:vmath_plus#stn_dev
 ```
 
-These values are updated to their proper values on any `vmath_plus` function
-call.
+If you manually change these values, subsequent report function calls will
+still output the correct report values. These values are also updated to their
+proper values after any `vmath_plus` function call.
 
 ## "More Instantly Better Vim" at OSCON 2013
 
