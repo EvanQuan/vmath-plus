@@ -66,7 +66,7 @@ nnoremap  <silent> <leader>m vipy:call g:vmath_plus#analyze()<Return>
 The function calculates the numbers in your current visual selection (visual/line/block mode).
 As shown, I have normal mode mapped to calculate the numbers in the current paragraph.
 
-The result will be outputed in the form:
+The result will be outputted in the form:
 
 ```
 s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3
@@ -84,9 +84,9 @@ The results are stored in the following registers:
 | p        | product |
 | r        | range   |
 | c        | count   |
- 
+
 which can be pasted with `"<register>p` in normal mode.
- 
+
  # References
 
  * http://www.oscon.com/oscon2013/public/schedule/detail/28875
