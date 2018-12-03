@@ -2,7 +2,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.0.0
+" Version:    3.0.1
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -116,7 +116,7 @@ function! g:vmath_plus#analyze()
   let number_space = len(sum) + len(max) + len(min) + len(med) + len(pro) + len(ran) + len(cnt)
   let used_space = number_space + label_space
   let available_space = winwidth(0) - used_space
-  let report_gap = max(1, float2nr(available_space * 1.0 / len(report_labels)))
+  let report_gap = max([1, float2nr(available_space * 1.0 / len(report_labels))])
   let gap = repeat(" ", report_gap)
   redraw
   echo
@@ -126,8 +126,8 @@ function! g:vmath_plus#analyze()
   \  . report_labels[3] . ': ' . @x . gap
   \  . report_labels[4] . ': ' . @m . gap
   \  . report_labels[5] . ': ' . @p . gap
-  \  . report_labels[5] . ': ' . @r . gap
-  \  . report_labels[6] . ': ' . @c
+  \  . report_labels[6] . ': ' . @r . gap
+  \  . report_labels[7] . ': ' . @c
 
 endfunction
 

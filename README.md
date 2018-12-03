@@ -63,16 +63,25 @@ xnoremrap <silent> <leader>m y:call g:vmath_plus#analyze()<Return>
 nnoremap  <silent> <leader>m vipy:call g:vmath_plus#analyze()<Return> 
 ```
 
-The function calculates the numbers in your current visual selection (visual/line/block mode).
-As shown, I have normal mode mapped to calculate the numbers in the current paragraph.
+The function calculates the numbers in your current visual selection
+(visual/line/block mode). As shown, I have normal mode mapped to calculate the
+numbers in the current paragraph.
 
-The result will be outputted in the form:
+For example, suppose you were to visually select the numbers:
+
+```
+1
+1
+4
+```
+
+The following result would be outputted:
 
 ```
 s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3
 ```
 
-The results are stored in the following registers:
+These values are then stored in the following registers:
 
 | Register | Value   |
 |:--------:|:-------:|
@@ -87,8 +96,8 @@ The results are stored in the following registers:
 
 which can be pasted with `"<register>p` in normal mode.
 
- # References
+## References
 
- * http://www.oscon.com/oscon2013/public/schedule/detail/28875
- * https://docs.google.com/file/d/0Bx3f0gFZh5Jqc0MtcUstV3BKdTQ/edit
- * http://www.youtube.com/watch?v=aHm36-na4-4
+- http://www.oscon.com/oscon2013/public/schedule/detail/28875
+- https://docs.google.com/file/d/0Bx3f0gFZh5Jqc0MtcUstV3BKdTQ/edit
+- http://www.youtube.com/watch?v=aHm36-na4-4
