@@ -1,7 +1,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.2.0
+" Version:    3.3.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -46,9 +46,9 @@ let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 let s:EXPAND_FULL_LABEL_WIDTH = 115
 
 let s:FULL_LABELS = ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
-                   \ 'm̲edian', 'p̲roduct', 'r̲ange', 'c̲ount' ]
+                   \ 'm̲edian', 'p̲roduct', 'r̲ange', 'c̲ount', 'stn d̲ev' ]
 let s:SHORT_LABELS = ['s̲um', 'a̲vg', 'min̲', 'max̲',
-                    \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt']
+                    \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt', 'std̲']
 
 " Last analyze report is saved
 " Script variables ensure that report echoes the correct values even if the
@@ -61,6 +61,7 @@ let s:med = 0
 let s:pro = 0
 let s:ran = 0
 let s:cnt = 0
+let s:std = 0
 " Global variables allow user to use analysis values however they want without
 " needing to check register contents. They are restored to script variables on
 " report in case the user tampers with them.
@@ -71,6 +72,7 @@ let g:vmath_plus#maximum = 0
 let g:vmath_plus#median = 0
 let g:vmath_plus#range = 0
 let g:vmath_plus#count = 0
+let g:vmath_plus#stn_dev = 0
 
 " Do simple math on current yank buffer...
 function! g:vmath_plus#analyze()
@@ -106,6 +108,7 @@ function! g:vmath_plus#analyze()
   let s:med = s:median(numbers)
   let s:ran = s:tidy ( str2float(s:max) - str2float(s:min) )
   let s:cnt = s:tidy ( len(numbers) )
+  let s:std = s:standard_deviation(raw_numbers)
 
   " Convert temporals...
   if temporal
@@ -117,7 +120,8 @@ function! g:vmath_plus#analyze()
     let s:pro = s:tidystr( s:sec2str(s:pro) )
     let s:ran = s:tidystr( s:sec2str(s:ran) )
     let s:cnt = s:tidystr( s:sec2str(s:cnt) )
- endif
+    let s:std = s:tidystr( s:sec2str(s:std) )
+  endif
 
   " En-register metrics...
   call setreg('s', s:sum )
@@ -128,6 +132,7 @@ function! g:vmath_plus#analyze()
   call setreg('p', s:pro )
   call setreg('r', s:ran )
   call setreg('c', s:cnt )
+  call setreg('d', s:std )
 
   " Default paste buffer should depend on original contents (TODO)
   call setreg('', @s )
@@ -145,6 +150,7 @@ function! g:vmath_plus#report()
   let g:vmath_plus#median = s:med
   let g:vmath_plus#range = s:ran
   let g:vmath_plus#count = s:cnt
+  let g:vmath_plus#stn_dev = s:std
   " Report...
   " Gap depends on window width
   let expand_full_labels = winwidth(0) >= s:EXPAND_FULL_LABEL_WIDTH
@@ -164,11 +170,12 @@ function! g:vmath_plus#report()
   \  . report_labels[4] . ': ' . s:med . gap
   \  . report_labels[5] . ': ' . s:pro . gap
   \  . report_labels[6] . ': ' . s:ran . gap
-  \  . report_labels[7] . ': ' . s:cnt
+  \  . report_labels[7] . ': ' . s:cnt . gap
+  \  . report_labels[8] . ': ' . s:std
 endfunction
 
 " Convert times to raw seconds...
-function! s:str2sec (time)
+function! s:str2sec(time)
   let components = split(a:time, ':')
   let multipliers = [60, 60*60, 60*60*24]
   let duration = str2float(remove(components, -1))
@@ -179,7 +186,7 @@ function! s:str2sec (time)
 endfunction
 
 " Convert raw seconds to times...
-function! s:sec2str (duration)
+function! s:sec2str(duration)
   let fraction = str2float(a:duration)
   let duration = str2nr(a:duration)
   let fraction -= duration
@@ -207,52 +214,20 @@ function! s:sec2str (duration)
 endfunction
 
 " Prettify numbers...
-function! s:tidy (number)
+function! s:tidy(number)
   let tidied = printf('%g', a:number)
   return substitute(tidied, '[.]0\+$', '', '')
 endfunction
 
-function! s:tidystr (str)
+function! s:tidystr(str)
   return substitute(a:str, '[.]0\+$', '', '')
 endfunction
 
-" Compute average with meaningful number of decimal places...
-function! s:average (numbers)
-  " Compute average...
-  let summation = eval( len(a:numbers) ? join( a:numbers, ' + ') : '0' )
-  let s:avg = 1.0 * summation / max([len(a:numbers), 1])
-
-  " Determine significant figures...
-  let min_decimals = 15
-  for num in a:numbers
-    let decimals = strlen(matchstr(num, '[.]\d\+$')) - 1
-    if decimals < min_decimals
-      let min_decimals = decimals
-    endif
-  endfor
-
-  " Adjust answer...
-  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', s:avg)
-  \                       : string(s:avg)
-endfunction
-
-" Compute the median with meaningful number of decimal places
-function! s:median (numbers)
-  " Sort list
-  let sorted_numbers = sort(a:numbers, 'f')
-
-  let length = len(a:numbers)
-
-  " Compute average...
-  if length == 0
-    let s:med = 0
-  elseif length % 2 == 0 " Even
-    let s:med = (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
-  else " Odd
-    let s:med = sorted_numbers[(length - 1)/2]
-  endif
-
-  " Determine significant figures...
+" Find the significant figures from list of numbers
+" @param List[string] of numbers
+" @param string of answer to round
+" @return string of answer rounded to alotted decimal places
+function! s:significant_figures(numbers, answer)
   let min_decimals = 15
   for num in a:numbers
     let decimals = strlen(matchstr(string(num), '[.]\d\+$')) - 1
@@ -260,14 +235,85 @@ function! s:median (numbers)
       let min_decimals = decimals
     endif
   endfor
-
   " Adjust answer...
-  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', s:med)
-  \                       : string(s:med)
+  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', a:answer)
+  \                       : string(a:answer)
+endfunction
+
+" Compute the standard deviation
+" @param List[string] of numbers
+" @return float of standard deviation unrounded
+function! s:standard_deviation_raw(numbers)
+  let length = len(a:numbers)
+
+  if length <= 1
+    return 0.0
+  endif
+
+  let mean = s:average_raw(a:numbers)
+  let std = 0.0
+
+  for num in a:numbers
+    let std += (num * 1.0 - mean) * (num * 1.0 - mean)
+  endfor
+  return sqrt(std / ((length - 1) * 1.0))
+endfunction
+
+" Compute standard deviation with meaningful number of decimal places...
+" @param List[string] of numbers
+" @return string of standard deviation with correct significant figures
+function! s:standard_deviation(numbers)
+  let s:std = s:standard_deviation_raw(a:numbers)
+  return s:significant_figures(a:numbers, s:std)
+endfunction
+
+" Compute average unrounded
+" @param List[float] of numbers
+" @return float of average unrounded
+function! s:average_raw(numbers)
+  " Compute average...
+  let summation = eval( len(a:numbers) ? join( a:numbers, ' + ') : '0' )
+  return 1.0 * summation / max([len(a:numbers), 1])
+endfunction
+
+" Compute average with meaningful number of decimal places...
+" @param List[float] of numbers
+" @return string of average with correct significant figures
+function! s:average(numbers)
+  let s:avg = s:average_raw(a:numbers)
+  return s:significant_figures(a:numbers, s:avg)
+endfunction
+
+" Compute average with meaningful number of decimal places...
+" @param List[string] of numbers
+" @return float of median unrounded
+function! s:median_raw(numbers)
+  " Sort list
+  let sorted_numbers = sort(a:numbers, 'f')
+
+  let length = len(a:numbers)
+
+  if length == 0
+    return 0
+  elseif length % 2 == 0 " Even
+    return (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
+  else " Odd
+    return sorted_numbers[(length - 1)/2]
+  endif
+endfunction
+
+" Compute the median with meaningful number of decimal places
+" @param List[string] of numbers
+" @return string of median with correct significant figures
+function! s:median(numbers)
+  let s:med = s:median_raw(a:numbers)
+  return s:significant_figures(a:numbers, s:med)
 endfunction
 
 " Reimplement these because the builtins don't handle floats (!!!)
-function! s:maximum (numbers)
+" @param List[string] of numbers
+" @return string of maximum
+function! s:maximum(numbers)
   if !len(a:numbers)
     return 0
   endif
@@ -281,7 +327,9 @@ function! s:maximum (numbers)
   return maxnum
 endfunction
 
-function! s:minimum (numbers)
+" @param List[string] of numbers
+" @return string of minimum
+function! s:minimum(numbers)
   if !len(a:numbers)
     return 0
   endif
@@ -294,6 +342,7 @@ function! s:minimum (numbers)
   endfor
   return minnum
 endfunction
+
 
 " Restore previous external compatibility options
 let &cpo = s:save_cpo

@@ -1,0 +1,28 @@
+1
+4
+
+----
+sum: 5  avg: 2.5  min: 1  max: 4  med: 2.5  pro: 4  ran: 3  cnt: 2  std: 2.12132
+
+
+2.5
+3
+
+----
+sum: 5.5  avg: 2.75  min: 2.5  max: 3  med: 2.8  pro: 7.5  ran: 0.5  cnt: 2  std: 0.790569
+
+
+1
+2
+10
+
+----
+sum: 13  avg: 4.333333  min: 1  max: 10 med: 2.0  pro: 20  ran: 9  cnt: 3  std: 4.932883
+
+
+1.0
+asdf
+3.01
+
+----
+sum: 4.01 avg: 2.9  min: 1  max: 3.01 med: 2.0  pro: 3.01  ran: 3.01  cnt: 2  std: 1.414231

@@ -87,21 +87,22 @@ For example, suppose you were to visually select the numbers:
 The following result would be echoed:
 
 ```
-s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3
+s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3   std̲: 1.732051
 ```
 
 These values are then stored in the following registers:
 
-| Register | Value   |
-|:--------:|:-------:|
-| s        | sum     |
-| a        | average |
-| n        | minimum |
-| x        | maximum |
-| m        | median  |
-| p        | product |
-| r        | range   |
-| c        | count   |
+| Register | Value              |
+|:--------:|:------------------:|
+| s        | sum                |
+| a        | average            |
+| n        | minimum            |
+| x        | maximum            |
+| m        | median             |
+| p        | product            |
+| r        | range              |
+| c        | count              |
+| d        | standard deviation |
 
 which can be pasted with `"<register>p` in normal mode.
 
@@ -129,6 +130,7 @@ g:vmath_plus#maximum
 g:vmath_plus#median
 g:vmath_plus#range
 g:vmath_plus#count
+g:vmath_plus#stn_dev
 ```
 
 These values are updated to their proper values on `g:vmath_plus#analyze()` and
