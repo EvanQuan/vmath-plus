@@ -1,8 +1,7 @@
-"
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.0.1
+" Version:    3.1.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -12,8 +11,9 @@
 "##                                                                        ##
 "##  To use:                                                               ##
 "##                                                                        ##
-"## xnoremrap <silent> <leader>m y:call g:vmath_plus#analyze()<Return>     ##
-"## nnoremap  <silent> <leader>m vipy:call g:vmath_plus#analyze()<Return>  ##
+"## xnoremrap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>    ##
+"## nnoremap  <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return> ##
+"## noremap   <silent> <leader>mr vipy:call g:vmath_plus#report()<Return>  ##
 "##                                                                        ##
 "##  (or whatever keys you prefer to remap these actions to)               ##
 "##                                                                        ##
@@ -45,6 +45,22 @@ let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 "
 let s:EXPAND_FULL_LABEL_WIDTH = 115
 
+let s:FULL_LABELS = ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
+                   \ 'm̲edian', 'p̲roduct', 'r̲ange', 'c̲ount' ]
+let s:SHORT_LABELS = ['s̲um', 'a̲vg', 'min̲', 'max̲',
+                    \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt']
+
+" Last analyze report is saved
+let s:sum = 0
+let s:avg = 0
+let s:min = 0
+let s:max = 0
+let s:med = 0
+let s:pro = 0
+let s:ran = 0
+let s:cnt = 0
+let s:report_values = [0, 0, 0, 0, 0, 0, 0, 0]
+
 " Do simple math on current yank buffer...
 function! g:vmath_plus#analyze()
   "
@@ -71,64 +87,68 @@ function! g:vmath_plus#analyze()
   let newline = selection =~ "\n" ? "\n" : ""
 
   " Calculate various interesting metrics...
-  let sum = s:tidy( eval( len(numbers) ? join( numbers, ' + ') : '0' ) )
-  let avg = s:average(raw_numbers)
-  let min = s:tidy( s:min(numbers) )
-  let max = s:tidy( s:max(numbers) )
-  let pro = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
-  let med = s:median(numbers)
-  let ran = s:tidy ( str2float(max) - str2float(min) )
-  let cnt = s:tidy ( len(numbers) )
+  let s:sum = s:tidy( eval( len(numbers) ? join( numbers, ' + ') : '0' ) )
+  let s:avg = s:average(raw_numbers)
+  let s:min = s:tidy( s:minimum(numbers) )
+  let s:max = s:tidy( s:maximum(numbers) )
+  let s:pro = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
+  let s:med = s:median(numbers)
+  let s:ran = s:tidy ( str2float(s:max) - str2float(s:min) )
+  let s:cnt = s:tidy ( len(numbers) )
 
   " Convert temporals...
   if temporal
-    let sum = s:tidystr( s:sec2str(sum) )
-    let avg = s:tidystr( s:sec2str(avg) )
-    let min = s:tidystr( s:sec2str(min) )
-    let max = s:tidystr( s:sec2str(max) )
-    let med = s:tidystr( s:sec2str(med) )
-    let pro = s:tidystr( s:sec2str(pro) )
-    let ran = s:tidystr( s:sec2str(ran) )
-    let cnt = s:tidystr( s:sec2str(cnt) )
+    let s:sum = s:tidystr( s:sec2str(s:sum) )
+    let s:avg = s:tidystr( s:sec2str(s:avg) )
+    let s:min = s:tidystr( s:sec2str(s:min) )
+    let s:max = s:tidystr( s:sec2str(s:max) )
+    let s:med = s:tidystr( s:sec2str(s:med) )
+    let s:pro = s:tidystr( s:sec2str(s:pro) )
+    let s:ran = s:tidystr( s:sec2str(s:ran) )
+    let s:cnt = s:tidystr( s:sec2str(s:cnt) )
  endif
 
   " En-register metrics...
-  call setreg('s', sum )
-  call setreg('a', avg )
-  call setreg('n', min )
-  call setreg('x', max )
-  call setreg('m', med )
-  call setreg('p', pro )
-  call setreg('r', ran )
-  call setreg('c', cnt )
+  call setreg('s', s:sum )
+  call setreg('a', s:avg )
+  call setreg('n', s:min )
+  call setreg('x', s:max )
+  call setreg('m', s:med )
+  call setreg('p', s:pro )
+  call setreg('r', s:ran )
+  call setreg('c', s:cnt )
+
+  " Save metrics for report
+  let s:report_values = [s:sum, s:avg, s:min, s:max, s:med, s:pro, s:ran, s:cnt]
 
   " Default paste buffer should depend on original contents (TODO)
   call setreg('', @s )
 
+  call g:vmath_plus#report()
+
+endfunction
+
+function! g:vmath_plus#report()
   " Report...
   " Gap depends on window width
   let expand_full_labels = winwidth(0) >= s:EXPAND_FULL_LABEL_WIDTH
-  let report_labels = expand_full_labels ? ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
-                                        \ 'm̲edian', 'p̲roduct', 'r̲ange', 'c̲ount' ] :
-                                        \ ['s̲um', 'a̲vg', 'min̲', 'max̲',
-                                        \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt']
+  let report_labels = expand_full_labels ?  s:FULL_LABELS : s:SHORT_LABELS
   let label_space = len( join(report_labels) ) + len(report_labels) * 2
-  let number_space = len(sum) + len(max) + len(min) + len(med) + len(pro) + len(ran) + len(cnt)
+  let number_space = len(s:sum) + len(s:max) + len(s:min) + len(s:med) + len(s:pro) + len(s:ran) + len(s:cnt)
   let used_space = number_space + label_space
   let available_space = winwidth(0) - used_space
   let report_gap = max([1, float2nr(available_space * 1.0 / len(report_labels))])
   let gap = repeat(" ", report_gap)
   redraw
   echo
-  \    report_labels[0] . ': ' . @s . gap
-  \  . report_labels[1] . ': ' . @a . gap
-  \  . report_labels[2] . ': ' . @n . gap
-  \  . report_labels[3] . ': ' . @x . gap
-  \  . report_labels[4] . ': ' . @m . gap
-  \  . report_labels[5] . ': ' . @p . gap
-  \  . report_labels[6] . ': ' . @r . gap
-  \  . report_labels[7] . ': ' . @c
-
+  \    report_labels[0] . ': ' . s:report_values[0] . gap
+  \  . report_labels[1] . ': ' . s:report_values[1] . gap
+  \  . report_labels[2] . ': ' . s:report_values[2] . gap
+  \  . report_labels[3] . ': ' . s:report_values[3] . gap
+  \  . report_labels[4] . ': ' . s:report_values[4] . gap
+  \  . report_labels[5] . ': ' . s:report_values[5] . gap
+  \  . report_labels[6] . ': ' . s:report_values[6] . gap
+  \  . report_labels[7] . ': ' . s:report_values[7]
 endfunction
 
 " Convert times to raw seconds...
@@ -155,19 +175,19 @@ function! s:sec2str (duration)
     return printf('0:%02d', sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  let min = duration % 60
+  let s:min = duration % 60
   let duration = duration / 60
   if !duration
-    return printf('%d:%02d', min, sec) . (fraction > 0 ? fracstr : '')
+    return printf('%d:%02d', s:min, sec) . (fraction > 0 ? fracstr : '')
   endif
 
   let hrs = duration % 24
   let duration = duration / 24
   if !duration
-    return printf('%d:%02d:%02d', hrs, min, sec) . (fraction > 0 ? fracstr : '')
+    return printf('%d:%02d:%02d', hrs, s:min, sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  return printf('%d:%02d:%02d:%02d', duration, hrs, min, sec) . (fraction > 0 ? fracstr : '')
+  return printf('%d:%02d:%02d:%02d', duration, hrs, s:min, sec) . (fraction > 0 ? fracstr : '')
 endfunction
 
 " Prettify numbers...
@@ -184,7 +204,7 @@ endfunction
 function! s:average (numbers)
   " Compute average...
   let summation = eval( len(a:numbers) ? join( a:numbers, ' + ') : '0' )
-  let avg = 1.0 * summation / s:max([len(a:numbers), 1])
+  let s:avg = 1.0 * summation / max([len(a:numbers), 1])
 
   " Determine significant figures...
   let min_decimals = 15
@@ -196,8 +216,8 @@ function! s:average (numbers)
   endfor
 
   " Adjust answer...
-  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', avg)
-  \                       : string(avg)
+  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', s:avg)
+  \                       : string(s:avg)
 endfunction
 
 " Compute the median with meaningful number of decimal places
@@ -209,11 +229,11 @@ function! s:median (numbers)
 
   " Compute average...
   if length == 0
-    let med = 0
+    let s:med = 0
   elseif length % 2 == 0 " Even
-    let med = (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
+    let s:med = (sorted_numbers[length/2] + sorted_numbers[length/2 - 1]) / 2.0
   else " Odd
-    let med = sorted_numbers[(length - 1)/2]
+    let s:med = sorted_numbers[(length - 1)/2]
   endif
 
   " Determine significant figures...
@@ -226,12 +246,12 @@ function! s:median (numbers)
   endfor
 
   " Adjust answer...
-  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', med)
-  \                       : string(med)
+  return min_decimals > 0 ? printf('%0.'.min_decimals.'f', s:med)
+  \                       : string(s:med)
 endfunction
 
 " Reimplement these because the builtins don't handle floats (!!!)
-function! s:max (numbers)
+function! s:maximum (numbers)
   if !len(a:numbers)
     return 0
   endif
@@ -245,7 +265,7 @@ function! s:max (numbers)
   return maxnum
 endfunction
 
-function! s:min (numbers)
+function! s:minimum (numbers)
   if !len(a:numbers)
     return 0
   endif

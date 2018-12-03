@@ -55,17 +55,22 @@ git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/bundle/vmath-plus
 
 ## Usage
 
-There is one function `g:vmath_plus#analyze`. By default, it is not mapped to
-anything so you can map them to whatever you like. I personally use:
+There are two functions `g:vmath_plus#analyze()`, and `g:vmath_plus#report`. By
+default, they are not mapped to anything so you can map them to whatever you
+like. I personally use:
 
 ```vim
-xnoremrap <silent> <leader>m y:call g:vmath_plus#analyze()<Return>
-nnoremap  <silent> <leader>m vipy:call g:vmath_plus#analyze()<Return> 
+xnoremrap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>
+nnoremap  <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return> 
+
+noremrap <silent> <leader>mr :call g:vmath_plus#report()<Return>
 ```
 
-The function calculates the numbers in your current visual selection
-(visual/line/block mode). As shown, I have normal mode mapped to calculate the
-numbers in the current paragraph.
+### Analyze
+
+`g:vmath_plus#analyze()` calculates the numbers in your current visual
+selection (visual/line/block mode). As shown, I have normal mode mapped to
+calculate the numbers in the current paragraph.
 
 For example, suppose you were to visually select the numbers:
 
@@ -75,7 +80,7 @@ For example, suppose you were to visually select the numbers:
 4
 ```
 
-The following result would be outputted:
+The following result would be echoed:
 
 ```
 s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3
@@ -95,6 +100,17 @@ These values are then stored in the following registers:
 | c        | count   |
 
 which can be pasted with `"<register>p` in normal mode.
+
+### Report
+
+`g:vmath_plus#report()` reports the results of the most recent analysis. Since
+the values are only temporarily echoed, it can be useful to go back and see
+previous results without having to recalculate them or manually check the
+register contents.
+
+The report message is dynamically calculated based on the window width at the
+time of the report. Spacing is increased to expand the window, and if wide
+enough, the value labels are expanded to their full names.
 
 ## References
 
