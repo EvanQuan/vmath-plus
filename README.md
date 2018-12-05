@@ -15,6 +15,16 @@ I have two main goals for this plugin:
 2. Avoid recursive key mappings, and expression mappings. I like my `nnoremap`
    and `vnoremap` and hate having to change them to accommodate for plugins.
 
+Table of Contents
+-----------------
+1. [Installation](#installation)
+2. [Usage](#usage)
+    - [Analyze](#analyze)
+    - [Report](#report)
+    - [Report variables](#report-variables)
+    - [Buffer settings](#buffer-settings)
+3. [More Information](#more-information)
+
 ## Installation
 
 Install using your favorite package manager, or use Vim's built-in package
@@ -51,7 +61,7 @@ git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/pack/plugin/start/vm
 git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/bundle/vmath-plus
 ```
 
-### Functions
+## Usage
 
 This plugin provides 4 functions:
 - `g:vmath_plus#analyze()`
@@ -140,7 +150,7 @@ The last analysis results are stored in global variables for you to do whatever
 you want with them, such as making your own commands or functions. They are as
 follows:
 
-```vim
+```
 g:vmath_plus#sum
 g:vmath_plus#average
 g:vmath_plus#minimum
@@ -156,7 +166,41 @@ If you manually change these values, subsequent report function calls will
 still output the correct report values. These values are also updated to their
 proper values after any `vmath_plus` function call.
 
-## "More Instantly Better Vim" at OSCON 2013
+### Buffer settings
+
+By default, For the buffer functions `g:vmath_plus#analyze_buffer()` and
+`g:vmath_plus#report_buffer()`, the report buffer resizes to fit only the text
+of the report to be as unobtrusive as possible. If you do not want the buffer
+to be resized, you can disable it in your `vimrc` with:
+```vim
+let g:vmath_plus#resize_buffer = 0
+```
+
+The report message expands to fit the window width in both the
+label spacing and in the label abbreviations. The aim is to the make the
+message both more readable for wide windows and to prevent it from overflowing
+to multiple lines for small windows and thus creating an annoying `Press ENTER
+or type command to continue` prompt.
+
+By default, the report buffer uses the same message as the echoed report.
+However, since it does not suffer from the single-line constraint as the echoed
+report, there is no need to shorten it. If you would like the report buffer to
+always use full labels no matter the window width, you can disable buffer label
+resizing in your `vimrc` with:
+```vim
+let g:vmath_plus#resize_buffer_labels = 0
+```
+
+Similarly, the minimum buffer spacing can be adjusted if resizing is disabled
+with:
+```vim
+let g:vmath_plus#min_buffer_gap = 2
+```
+By default it is set to 2, meaning that the buffer label spacing will either be
+2 or greater if `g:vmath_plus#resize_buffer_labels = 0`. Non-positive gap sizes
+will be readjusted to 1.
+
+## More Information
 
 More information about the talk from which the original `vmath` plugin was
 presented.

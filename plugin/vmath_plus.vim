@@ -1,7 +1,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.4.1
+" Version:    3.5.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -15,6 +15,20 @@ if exists("g:vmath_plus#loaded")
   finish
 endif
 let g:vmath_plus#loaded = 1
+
+if !exists("g:vmath_plus#resize_buffer")
+  let g:vmath_plus#resize_buffer = 1
+endif
+
+if !exists("g:vmath_plus#resize_buffer_labels")
+  let g:vmath_plus#resize_buffer_labels = 1
+endif
+
+if !exists("g:vmath_plus#min_buffer_gap")
+  let g:vmath_plus#min_buffer_gap = 2
+elseif g:vmath_plus#min_buffer_gap < 1
+  let g:vmath_plus#min_buffer_gap = 1
+endif
 
 " Preserve external compatibility options, then enable full vim compatibility...
 let s:save_cpo = &cpo
@@ -30,22 +44,22 @@ let s:NUM_PAT = '^[$€£¥]\?[+-]\?[$€£¥]\?\%(\d\{1,3}\%(,\d\{3}\)\+\|\d\+\
 let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 
 " How widely to space the report components...
-" Note: Report gap is dynamically calculated based on window width
-"
-" let s:REPORT_GAP = 5  "spaces between components
+" Report gap is dynamically calculated based on window width
 
 " Window width until report labels use full words
 "
-let s:EXPAND_FULL_LABEL_WIDTH = 115
 let s:METRIC_COUNT = 9
 let s:FULL_LABELS = ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
                    \ 'm̲edian', 'p̲roduct', 'r̲ange', 'c̲ount', 'stn d̲ev' ]
 let s:SHORT_LABELS = ['s̲um', 'a̲vg', 'min̲', 'max̲',
                     \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt', 'std̲']
+let s:MIN_LABELS = ['s̲', 'a̲', 'n̲', 'x̲',
+                    \ 'm̲', 'p̲', 'r̲', 'c̲', 'd̲']
 let s:LABEL_EXTENSION_LENGTH = 2 * s:METRIC_COUNT
 let s:FULL_LABELS_LENGTH = 3 + 7 + 7 + 7
                        \ + 6 + 7 + 5 + 5 + 7
 let s:SHORT_LABELS_LENGTH = 3 * s:METRIC_COUNT
+let s:MIN_LABELS_LENGTH = s:METRIC_COUNT
 let s:SHOW_COMMAND_SPACE = 10
 
 " Fake enums
@@ -132,11 +146,10 @@ function! s:analyze() " {{{
 endfunction " }}}
 " Report {{{
 
-function! s:get_gap_and_labels() " {{{
+function! s:get_gap_and_labels(isBuffer) " {{{
   " Get the gap for the report message based on the specified labels and
   " values at the time.
-  " @param List[string] labels
-  " @param List[string] values
+  " @param boolean isBuffer
   " @return List[int, List[string]] gap and labels
 
   let values_length =  0
@@ -150,21 +163,31 @@ function! s:get_gap_and_labels() " {{{
         \ + s:LABEL_EXTENSION_LENGTH
 
   let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
-  let report_gap = max(
-        \ [1, float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))])
+  let report_gap = float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))
 
-  " If full labels are too squished, switch to short labels
-  if report_gap < 2
+  if !g:vmath_plus#resize_buffer_labels && a:isBuffer
+    let report_gap = report_gap < g:vmath_plus#min_buffer_gap ?
+                                \ g:vmath_plus#min_buffer_gap : report_gap
+  elseif report_gap < 1
+    " If full labels are too squished, switch to short labels
     let labels = s:SHORT_LABELS
     let used_space = s:SHORT_LABELS_LENGTH + values_length
           \ + s:LABEL_EXTENSION_LENGTH
     let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
-    let report_gap = max(
-          \ [1, float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))])
+    let report_gap = float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))
+    if report_gap < 1
+      " If short labels are too squished, switch to min labels
+      let labels = s:MIN_LABELS
+      let used_space = s:MIN_LABELS_LENGTH + values_length
+            \ + s:LABEL_EXTENSION_LENGTH
+      let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
+      let report_gap = max(
+            \ [1, float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))])
+    endif
   endif
   return [report_gap, labels]
 endfunction " }}}
-function! s:get_report_message() " {{{
+function! s:get_report_message(isBuffer) " {{{
   " Store global merics in case of tampering
   let g:vmath_plus#sum     = s:values[s:SUM]
   let g:vmath_plus#average = s:values[s:AVG]
@@ -177,7 +200,7 @@ function! s:get_report_message() " {{{
   let g:vmath_plus#stn_dev = s:values[s:STD]
   " Report...
   " Gap depends on window width
-  let gap_and_labels = s:get_gap_and_labels()
+  let gap_and_labels = s:get_gap_and_labels(a:isBuffer)
   let gap = repeat(" ", gap_and_labels[0])
   " redraw " What is the purpose of redrawing?
   return
@@ -221,10 +244,12 @@ function! s:split_report() " {{{
   setlocal modifiable
   %delete _
 
-  execute ".! echo '" . s:get_report_message() . "'"
+  execute ".! echo '" . s:get_report_message(1) . "'"
 
   " decrease window size
-  execute 'resize' . line('$')
+  if g:vmath_plus#resize_buffer
+    execute 'resize' . line('$')
+  endif
 
   " make the buffer non modifiable
   setlocal readonly
@@ -447,8 +472,8 @@ endfunction
 
 function! g:vmath_plus#report()
   " redraw
-  echo s:get_report_message()
-  redraw
+  echo s:get_report_message(0)
+  " redraw
 endfunction
 
 function! g:vmath_plus#report_buffer()
