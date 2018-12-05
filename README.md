@@ -4,7 +4,7 @@ This plugin allows you to do simple math on visual regions. It is an
 extension of Damian Conway's [vmath
 plugin](https://github.com/thoughtstream/Damian-Conway-s-Vim-Setup/blob/master/plugin/vmath.vim).
 
-Here is a video demonstration of the plugin in use from OSCON 2013:
+Here is a video demonstrating the original plugin from OSCON 2013:
 
 [![](https://img.youtube.com/vi/aHm36-na4-4/0.jpg)](https://www.youtube.com/watch?v=aHm36-na4-4&feature=youtu.be&t=1792)
 
@@ -82,7 +82,8 @@ noremap <silent> <leader>mbr :call g:vmath_plus#report_buffer()<Return>
 selection (visual/line/block mode). As shown, I have normal mode mapped to
 calculate the numbers in the current paragraph.
 
-For example, suppose you were to visually select the numbers:
+For example, if you were to visually select the following numbers and call
+`g:vmath_plus#analyze()`:
 
 ```
 1
@@ -90,7 +91,7 @@ For example, suppose you were to visually select the numbers:
 4
 ```
 
-The following result would be echoed:
+The following result would be echoed to the screen:
 
 ```
 s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3   std̲: 1.732051
@@ -112,8 +113,8 @@ These values are then stored in the following registers:
 
 which can be pasted with `"<register>p` in normal mode.
 
-`g:vmath_plus#analyze_buffer()` does the same thing but outputs the result in
-a small read-only buffer at the bottom of the screen instead of echoing it.
+`g:vmath_plus#analyze_buffer()` does the same thing but prints the result in
+a small read-only buffer at the bottom of the window instead of echoing it.
 The buffer is persistently open until you manually close it, and lets you copy
 and paste portions of it as you please.
 
@@ -128,8 +129,8 @@ The report message is dynamically calculated based on the window width at the
 time of the report. Spacing is increased to expand the window, and if wide
 enough, the value labels are expanded to their full names.
 
-`g:vmath_plus#report_buffer()` does the same thing but outputs the result in
-a small read-only buffer at the bottom of the screen instead of echoing it.
+`g:vmath_plus#report_buffer()` does the same thing but prints the result in
+a small read-only buffer at the bottom of the window instead of echoing it.
 The buffer is persistently open until you manually close it, and lets you copy
 and paste portions of it as you please.
 
