@@ -136,7 +136,8 @@ and paste portions of it as you please.
 ### Report variables
 
 The last analysis results are stored in global variables for you to do whatever
-you want with them, such as making your own commands or functions. They are as follows:
+you want with them, such as making your own commands or functions. They are as
+follows:
 
 ```vim
 g:vmath_plus#sum
@@ -144,6 +145,7 @@ g:vmath_plus#average
 g:vmath_plus#minimum
 g:vmath_plus#maximum
 g:vmath_plus#median
+g:vmath_plus#product
 g:vmath_plus#range
 g:vmath_plus#count
 g:vmath_plus#stn_dev

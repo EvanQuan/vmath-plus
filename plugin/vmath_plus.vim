@@ -1,7 +1,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.4.0
+" Version:    3.4.1
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -23,8 +23,6 @@ set cpo&vim
 " }}}
 " Script variables {{{
 
-" Constants {{{
-
 " What to consider a number...
 let s:NUM_PAT = '^[$€£¥]\?[+-]\?[$€£¥]\?\%(\d\{1,3}\%(,\d\{3}\)\+\|\d\+\)\%([.]\d\+\)\?\([eE][+-]\?\d\+\)\?$'
 
@@ -39,29 +37,32 @@ let s:TIME_PAT = '^\d\+\%([:]\d\+\)\+\%([.]\d\+\)\?$'
 " Window width until report labels use full words
 "
 let s:EXPAND_FULL_LABEL_WIDTH = 115
-
+let s:METRIC_COUNT = 9
 let s:FULL_LABELS = ['s̲um', 'a̲verage', 'min̲imum', 'max̲imum',
                    \ 'm̲edian', 'p̲roduct', 'r̲ange', 'c̲ount', 'stn d̲ev' ]
 let s:SHORT_LABELS = ['s̲um', 'a̲vg', 'min̲', 'max̲',
                     \ 'm̲ed', 'p̲ro', 'r̲an', 'c̲nt', 'std̲']
+let s:LABEL_EXTENSION_LENGTH = 2 * s:METRIC_COUNT
+let s:FULL_LABELS_LENGTH = 3 + 7 + 7 + 7
+                       \ + 6 + 7 + 5 + 5 + 7
+let s:SHORT_LABELS_LENGTH = 3 * s:METRIC_COUNT
+let s:SHOW_COMMAND_SPACE = 10
 
-" }}}
-" Metric values {{{
+" Fake enums
+let s:SUM = 0
+let s:AVG = 1
+let s:MIN = 2
+let s:MAX = 3
+let s:MED = 4
+let s:PRO = 5
+let s:RAN = 6
+let s:CNT = 7
+let s:STD = 8
 
 " Last analyze report is saved
 " Script variables ensure that report echoes the correct values even if the
 " registers are changed after the analisis.
-let s:sum = 0
-let s:avg = 0
-let s:min = 0
-let s:max = 0
-let s:med = 0
-let s:pro = 0
-let s:ran = 0
-let s:cnt = 0
-let s:std = 0
-
-" }}}
+let s:values = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 " }}}
 " Script functions {{{
@@ -92,76 +93,103 @@ function! s:analyze() " {{{
   let newline = selection =~ "\n" ? "\n" : ""
 
   " Calculate various interesting metrics...
-  let s:sum = s:tidy( eval( len(numbers) ? join( numbers, ' + ') : '0' ) )
-  let s:avg = s:average(raw_numbers)
-  let s:min = s:tidy( s:minimum(numbers) )
-  let s:max = s:tidy( s:maximum(numbers) )
-  let s:pro = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
-  let s:med = s:median(numbers)
-  let s:ran = s:tidy ( str2float(s:max) - str2float(s:min) )
-  let s:cnt = s:tidy ( len(numbers) )
-  let s:std = s:standard_deviation(raw_numbers)
+  let s:values[s:SUM] = s:tidy( eval( len(numbers) ? join( numbers, ' + ') : '0' ) )
+  let s:values[s:AVG] = s:average(raw_numbers)
+  let s:values[s:MIN] = s:tidy( s:minimum(numbers) )
+  let s:values[s:MAX] = s:tidy( s:maximum(numbers) )
+  let s:values[s:MED] = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
+  let s:values[s:PRO] = s:median(numbers)
+  let s:values[s:RAN] = s:tidy ( str2float(s:values[s:MAX]) - str2float(s:values[s:values[s:MIN]]) )
+  let s:values[s:CNT] = s:tidy ( len(numbers) )
+  let s:values[s:STD] = s:standard_deviation(raw_numbers)
 
   " Convert temporals...
   if temporal
-    let s:sum = s:tidystr( s:sec2str(s:sum) )
-    let s:avg = s:tidystr( s:sec2str(s:avg) )
-    let s:min = s:tidystr( s:sec2str(s:min) )
-    let s:max = s:tidystr( s:sec2str(s:max) )
-    let s:med = s:tidystr( s:sec2str(s:med) )
-    let s:pro = s:tidystr( s:sec2str(s:pro) )
-    let s:ran = s:tidystr( s:sec2str(s:ran) )
-    let s:cnt = s:tidystr( s:sec2str(s:cnt) )
-    let s:std = s:tidystr( s:sec2str(s:std) )
+    let s:values[s:SUM] = s:tidystr( s:sec2str(s:values[s:SUM]) )
+    let s:values[s:AVG] = s:tidystr( s:sec2str(s:values[s:AVG]) )
+    let s:values[s:MIN] = s:tidystr( s:sec2str(s:values[s:MIN]) )
+    let s:values[s:MAX] = s:tidystr( s:sec2str(s:values[s:MAX]) )
+    let s:values[s:MED] = s:tidystr( s:sec2str(s:values[s:MED]) )
+    let s:values[s:PRO] = s:tidystr( s:sec2str(s:values[s:PRO]) )
+    let s:values[s:RAN] = s:tidystr( s:sec2str(s:values[s:RAN]) )
+    let s:values[s:CNT] = s:tidystr( s:sec2str(s:values[s:CNT]) )
+    let s:values[s:STD] = s:tidystr( s:sec2str(s:values[s:STD]) )
   endif
 
   " En-register metrics...
-  call setreg('s', s:sum )
-  call setreg('a', s:avg )
-  call setreg('n', s:min )
-  call setreg('x', s:max )
-  call setreg('m', s:med )
-  call setreg('p', s:pro )
-  call setreg('r', s:ran )
-  call setreg('c', s:cnt )
-  call setreg('d', s:std )
+  call setreg('s', s:values[s:SUM] )
+  call setreg('a', s:values[s:AVG] )
+  call setreg('n', s:values[s:MIN] )
+  call setreg('x', s:values[s:MAX] )
+  call setreg('m', s:values[s:MED] )
+  call setreg('p', s:values[s:PRO] )
+  call setreg('r', s:values[s:RAN] )
+  call setreg('c', s:values[s:CNT] )
+  call setreg('d', s:values[s:STD] )
 
   " Default paste buffer should depend on original contents (TODO)
   call setreg('', @s )
 endfunction " }}}
 " Report {{{
 
+function! s:get_gap_and_labels() " {{{
+  " Get the gap for the report message based on the specified labels and
+  " values at the time.
+  " @param List[string] labels
+  " @param List[string] values
+  " @return List[int, List[string]] gap and labels
+
+  let values_length =  0
+  for value in s:values
+    let values_length += len(value)
+  endfor
+
+  " Calculate spacing for full labels
+  let labels = s:FULL_LABELS
+  let used_space = s:FULL_LABELS_LENGTH + values_length
+        \ + s:LABEL_EXTENSION_LENGTH
+
+  let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
+  let report_gap = max(
+        \ [1, float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))])
+
+  " If full labels are too squished, switch to short labels
+  if report_gap < 2
+    let labels = s:SHORT_LABELS
+    let used_space = s:SHORT_LABELS_LENGTH + values_length
+          \ + s:LABEL_EXTENSION_LENGTH
+    let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
+    let report_gap = max(
+          \ [1, float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))])
+  endif
+  return [report_gap, labels]
+endfunction " }}}
 function! s:get_report_message() " {{{
   " Store global merics in case of tampering
-  let g:vmath_plus#sum = s:sum
-  let g:vmath_plus#average = s:avg
-  let g:vmath_plus#minimum = s:min
-  let g:vmath_plus#maximum = s:max
-  let g:vmath_plus#median = s:med
-  let g:vmath_plus#range = s:ran
-  let g:vmath_plus#count = s:cnt
-  let g:vmath_plus#stn_dev = s:std
+  let g:vmath_plus#sum     = s:values[s:SUM]
+  let g:vmath_plus#average = s:values[s:AVG]
+  let g:vmath_plus#minimum = s:values[s:MIN]
+  let g:vmath_plus#maximum = s:values[s:MAX]
+  let g:vmath_plus#median  = s:values[s:MED]
+  let g:vmath_plus#product = s:values[s:PRO]
+  let g:vmath_plus#range   = s:values[s:RAN]
+  let g:vmath_plus#count   = s:values[s:CNT]
+  let g:vmath_plus#stn_dev = s:values[s:STD]
   " Report...
   " Gap depends on window width
-  let expand_full_labels = winwidth(0) >= s:EXPAND_FULL_LABEL_WIDTH
-  let report_labels = expand_full_labels ?  s:FULL_LABELS : s:SHORT_LABELS
-  let label_space = len( join(report_labels) ) + len(report_labels) * 2
-  let number_space = len(s:sum) + len(s:max) + len(s:min) + len(s:med) + len(s:pro) + len(s:ran) + len(s:cnt)
-  let used_space = number_space + label_space
-  let available_space = winwidth(0) - used_space
-  let report_gap = max([1, float2nr(available_space * 1.0 / len(report_labels))])
-  let gap = repeat(" ", report_gap)
+  let gap_and_labels = s:get_gap_and_labels()
+  let gap = repeat(" ", gap_and_labels[0])
   " redraw " What is the purpose of redrawing?
   return
-  \    report_labels[0] . ': ' . s:sum . gap
-  \  . report_labels[1] . ': ' . s:avg . gap
-  \  . report_labels[2] . ': ' . s:min . gap
-  \  . report_labels[3] . ': ' . s:max . gap
-  \  . report_labels[4] . ': ' . s:med . gap
-  \  . report_labels[5] . ': ' . s:pro . gap
-  \  . report_labels[6] . ': ' . s:ran . gap
-  \  . report_labels[7] . ': ' . s:cnt . gap
-  \  . report_labels[8] . ': ' . s:std
+  \    gap_and_labels[1][s:SUM] . ': ' . s:values[s:SUM]  . gap
+  \  . gap_and_labels[1][s:AVG] . ': ' . s:values[s:AVG]  . gap
+  \  . gap_and_labels[1][s:MIN] . ': ' . s:values[s:MIN]  . gap
+  \  . gap_and_labels[1][s:MAX] . ': ' . s:values[s:MAX]  . gap
+  \  . gap_and_labels[1][s:MED] . ': ' . s:values[s:MED]  . gap
+  \  . gap_and_labels[1][s:PRO] . ': ' . s:values[s:PRO]  . gap
+  \  . gap_and_labels[1][s:RAN] . ': ' . s:values[s:RAN]  . gap
+  \  . gap_and_labels[1][s:CNT] . ': ' . s:values[s:CNT]  . gap
+  \  . gap_and_labels[1][s:STD] . ': ' . s:values[s:STD]
 endfunction " }}}
 function! s:split_report() " {{{
   let s:output_buffer_name = "VMath Report"
@@ -229,19 +257,19 @@ function! s:sec2str(duration) " {{{
     return printf('0:%02d', sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  let s:min = duration % 60
+  let s:values[s:MIN] = duration % 60
   let duration = duration / 60
   if !duration
-    return printf('%d:%02d', s:min, sec) . (fraction > 0 ? fracstr : '')
+    return printf('%d:%02d', s:values[s:MIN], sec) . (fraction > 0 ? fracstr : '')
   endif
 
   let hrs = duration % 24
   let duration = duration / 24
   if !duration
-    return printf('%d:%02d:%02d', hrs, s:min, sec) . (fraction > 0 ? fracstr : '')
+    return printf('%d:%02d:%02d', hrs, s:values[s:MIN], sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  return printf('%d:%02d:%02d:%02d', duration, hrs, s:min, sec) . (fraction > 0 ? fracstr : '')
+  return printf('%d:%02d:%02d:%02d', duration, hrs, s:values[s:MIN], sec) . (fraction > 0 ? fracstr : '')
 endfunction " }}}
 
 " }}}
@@ -299,8 +327,8 @@ function! s:standard_deviation(numbers) " {{{
   " Compute standard deviation with meaningful number of decimal places...
   " @param List[string] of numbers
   " @return string of standard deviation with correct significant figures
-  let s:std = s:standard_deviation_raw(a:numbers)
-  return s:significant_figures(a:numbers, s:std)
+  let std = s:standard_deviation_raw(a:numbers)
+  return s:significant_figures(a:numbers, std)
 endfunction " }}}
 
 " }}}
@@ -317,8 +345,8 @@ function! s:average(numbers) " {{{
   " Compute average with meaningful number of decimal places...
   " @param List[float] of numbers
   " @return string of average with correct significant figures
-  let s:avg = s:average_raw(a:numbers)
-  return s:significant_figures(a:numbers, s:avg)
+  let avg = s:average_raw(a:numbers)
+  return s:significant_figures(a:numbers, avg)
 endfunction " }}}
 
 " }}}
@@ -345,8 +373,8 @@ function! s:median(numbers) " {{{
   " Compute the median with meaningful number of decimal places
   " @param List[string] of numbers
   " @return string of median with correct significant figures
-  let s:med = s:median_raw(a:numbers)
-  return s:significant_figures(a:numbers, s:med)
+  let med = s:median_raw(a:numbers)
+  return s:significant_figures(a:numbers, med)
 endfunction " }}}
 
 " }}}
@@ -420,6 +448,7 @@ endfunction
 function! g:vmath_plus#report()
   " redraw
   echo s:get_report_message()
+  redraw
 endfunction
 
 function! g:vmath_plus#report_buffer()
