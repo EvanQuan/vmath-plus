@@ -1,28 +1,70 @@
 1
 4
 
-----
 s̲um: 5        a̲verage: 2.5        min̲imum: 1        max̲imum: 4        m̲edian: 2.5        p̲roduct: 4        r̲ange: 3        c̲ount: 2        stn d̲ev: 2.12132
+----
 
 
 2.5
 3
 
-----
 s̲um: 5.5       a̲verage: 2.75       min̲imum: 2.5       max̲imum: 3       m̲edian: 2.8       p̲roduct: 7.5       r̲ange: 0.5       c̲ount: 2       stn d̲ev: 0.790569
+----
 
 
 1
 2
 10
 
-----
 s̲um: 13       a̲verage: 4.333333       min̲imum: 1       max̲imum: 10       m̲edian: 2.0       p̲roduct: 20       r̲ange: 9       c̲ount: 3       stn d̲ev: 4.932883
+----
 
 
 1.2
 asdf
 3.01
 
-----
 s̲um: 4.21      a̲verage: 2.105      min̲imum: 1.2      max̲imum: 3.01      m̲edian: 2.1      p̲roduct: 3.612      r̲ange: 1.81      c̲ount: 2      stn d̲ev: 1.421988
+                        2.1
+----
+
+# Ignored
+192.68.1.1
+
+s̲um: 0:00        a̲verage: 0:00        min̲imum: 0:00        max̲imum: 0:00        m̲edian: 0:00        p̲roduct: 0:00        r̲ange: 0:00        c̲ount: 0        stn d̲ev: 0:00
+----
+
+# Times
+# day:hour:min:sec
+
+0:23
+0:58
+
+s̲um: 1:21      a̲verage: 0:40.5      min̲imum: 0:23      max̲imum: 0:58      m̲edian: 0:40.5      p̲roduct: 22:14      r̲ange: 0:35      c̲ount: 2      stn d̲ev: 0:24.748737
+----
+
+0:22        // twenty-two seconds
+1:07        // one minute, seven seconds
+1:18:00     // one hour, eighteen minutes
+
+s̲um: 1:19:29    a̲verage: 26:29.666667    min̲imum: 0:22    max̲imum: 1:18:00    m̲edian: 1:07    p̲roduct: 79:20:12:00    r̲ange: 1:17:38    c̲ount: 3    stn d̲ev: 44:36.401751
+----
+
+4:3:40
+1:14:20
+
+s̲um: 5:18:00   a̲verage: 2:39:00   min̲imum: 1:14:20   max̲imum: 4:03:40   m̲edian: 2:39:00   p̲roduct: 0:066.520519e7   r̲ange: 2:49:20   c̲ount: 2   stn d̲ev: 1:59:44.204897
+----
+
+
+4:3:40
+23:14:20
+
+s̲um: 1:03:18:00  a̲verage: 13:39:00  min̲imum: 4:03:40  max̲imum: 23:14:20  m̲edian: 13:39:00  p̲roduct: 0:011.223109e9  r̲ange: 19:10:40  c̲ount: 2  stn d̲ev: 13:33:38.652173
+----
+
+5:4:3:40
+28:23:14:20
+
+s̲um: 34:03:18:00   a̲vg: 17:01:39:00   min̲: 5:04:03:40   max̲: 28:23:14:20   m̲ed: 17:01:39:00   p̲ro: 0:011.117827e12   r̲an: 23:19:10:40   c̲nt: 2   std̲: 16:19:53:01.247747
+----

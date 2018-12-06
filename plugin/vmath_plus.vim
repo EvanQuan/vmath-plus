@@ -1,7 +1,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.5.0
+" Version:    3.5.1
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -60,7 +60,7 @@ let s:FULL_LABELS_LENGTH = 3 + 7 + 7 + 7
                        \ + 6 + 7 + 5 + 5 + 7
 let s:SHORT_LABELS_LENGTH = 3 * s:METRIC_COUNT
 let s:MIN_LABELS_LENGTH = s:METRIC_COUNT
-let s:SHOW_COMMAND_SPACE = 10
+let s:SHOW_COMMAND_SPACE = 11
 
 " Fake enums
 let s:SUM = 0
@@ -72,6 +72,13 @@ let s:PRO = 5
 let s:RAN = 6
 let s:CNT = 7
 let s:STD = 8
+
+" Time
+let s:SECONDS_PER_MINUTE = 60
+let s:MINUTES_PER_HOUR = 60
+let s:HOURS_PER_DAY = 24
+let s:SECONDS_PER_HOUR = s:SECONDS_PER_MINUTE * s:MINUTES_PER_HOUR
+let s:SECONDS_PER_DAY = s:SECONDS_PER_HOUR * s:HOURS_PER_DAY
 
 " Last analyze report is saved
 " Script variables ensure that report echoes the correct values even if the
@@ -88,10 +95,11 @@ function! s:analyze() " {{{
   let selection = getreg('')
   let raw_numbers = filter(split(selection), 'v:val =~ s:NUM_PAT')
   let raw_numbers = map(raw_numbers, 'substitute(v:val,"[,$€£¥]","","g")')
-  let temporal = empty(raw_numbers)
+  let s:temporal = empty(raw_numbers)
 
   " If no numerical data, try time data...
-  if temporal
+  if s:temporal
+    " string
     let raw_numbers
       \ = map( filter( split(selection),
       \                'v:val =~ s:TIME_PAT'
@@ -101,6 +109,7 @@ function! s:analyze() " {{{
   endif
 
   " Convert to calculable terms...
+  " float
   let numbers = map(copy(raw_numbers), 'str2float(v:val)')
 
   " Results include a newline if original selection did...
@@ -111,23 +120,25 @@ function! s:analyze() " {{{
   let s:values[s:AVG] = s:average(raw_numbers)
   let s:values[s:MIN] = s:tidy( s:minimum(numbers) )
   let s:values[s:MAX] = s:tidy( s:maximum(numbers) )
-  let s:values[s:MED] = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
-  let s:values[s:PRO] = s:median(numbers)
-  let s:values[s:RAN] = s:tidy ( str2float(s:values[s:MAX]) - str2float(s:values[s:values[s:MIN]]) )
+  let s:values[s:MED] = s:median(numbers)
+  let s:values[s:PRO] = s:tidy( eval( len(numbers) ? join( numbers, ' * ' ) : '0' ) )
+  let s:values[s:RAN] = s:tidy ( str2float(s:values[s:MAX]) - str2float(s:values[s:MIN]) )
   let s:values[s:CNT] = s:tidy ( len(numbers) )
   let s:values[s:STD] = s:standard_deviation(raw_numbers)
 
   " Convert temporals...
-  if temporal
+  if s:temporal
     let s:values[s:SUM] = s:tidystr( s:sec2str(s:values[s:SUM]) )
     let s:values[s:AVG] = s:tidystr( s:sec2str(s:values[s:AVG]) )
     let s:values[s:MIN] = s:tidystr( s:sec2str(s:values[s:MIN]) )
     let s:values[s:MAX] = s:tidystr( s:sec2str(s:values[s:MAX]) )
     let s:values[s:MED] = s:tidystr( s:sec2str(s:values[s:MED]) )
     let s:values[s:PRO] = s:tidystr( s:sec2str(s:values[s:PRO]) )
+    " let s:values[s:PRO] = '0'
     let s:values[s:RAN] = s:tidystr( s:sec2str(s:values[s:RAN]) )
-    let s:values[s:CNT] = s:tidystr( s:sec2str(s:values[s:CNT]) )
+    " let s:values[s:CNT] = s:tidystr( s:sec2str(s:values[s:CNT]) )
     let s:values[s:STD] = s:tidystr( s:sec2str(s:values[s:STD]) )
+    " let s:values[s:STD] = '0'
   endif
 
   " En-register metrics...
@@ -146,11 +157,22 @@ function! s:analyze() " {{{
 endfunction " }}}
 " Report {{{
 
+function! s:calculate_gap_and_labels(labels, labels_length, values_length) " {{{
+  " @return void
+  "         Updates s:report_gap and s:labels
+  let s:labels = a:labels
+  let used_space = a:labels_length + a:values_length
+        \ + s:LABEL_EXTENSION_LENGTH
+  let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
+  let s:report_gap = float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))
+endfunction " }}}
+
 function! s:get_gap_and_labels(isBuffer) " {{{
   " Get the gap for the report message based on the specified labels and
   " values at the time.
   " @param boolean isBuffer
-  " @return List[int, List[string]] gap and labels
+  " @return void
+  "         Updates s:report_gap and s:labels
 
   let values_length =  0
   for value in s:values
@@ -158,34 +180,18 @@ function! s:get_gap_and_labels(isBuffer) " {{{
   endfor
 
   " Calculate spacing for full labels
-  let labels = s:FULL_LABELS
-  let used_space = s:FULL_LABELS_LENGTH + values_length
-        \ + s:LABEL_EXTENSION_LENGTH
-
-  let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
-  let report_gap = float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))
-
+  call s:calculate_gap_and_labels(s:FULL_LABELS, s:FULL_LABELS_LENGTH, values_length)
   if !g:vmath_plus#resize_buffer_labels && a:isBuffer
-    let report_gap = report_gap < g:vmath_plus#min_buffer_gap ?
-                                \ g:vmath_plus#min_buffer_gap : report_gap
-  elseif report_gap < 1
+    let s:report_gap = s:report_gap < g:vmath_plus#min_buffer_gap ?
+                                \ g:vmath_plus#min_buffer_gap : s:report_gap
+  elseif s:report_gap < 1
     " If full labels are too squished, switch to short labels
-    let labels = s:SHORT_LABELS
-    let used_space = s:SHORT_LABELS_LENGTH + values_length
-          \ + s:LABEL_EXTENSION_LENGTH
-    let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
-    let report_gap = float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))
-    if report_gap < 1
+    call s:calculate_gap_and_labels(s:SHORT_LABELS, s:SHORT_LABELS_LENGTH, values_length)
+    if s:report_gap < 1
       " If short labels are too squished, switch to min labels
-      let labels = s:MIN_LABELS
-      let used_space = s:MIN_LABELS_LENGTH + values_length
-            \ + s:LABEL_EXTENSION_LENGTH
-      let available_space = winwidth(0) - s:SHOW_COMMAND_SPACE - used_space
-      let report_gap = max(
-            \ [1, float2nr(available_space * 1.0 / (s:METRIC_COUNT - 1))])
+      call s:calculate_gap_and_labels(s:MIN_LABELS, s:MIN_LABELS_LENGTH, values_length)
     endif
   endif
-  return [report_gap, labels]
 endfunction " }}}
 function! s:get_report_message(isBuffer) " {{{
   " Store global merics in case of tampering
@@ -200,19 +206,19 @@ function! s:get_report_message(isBuffer) " {{{
   let g:vmath_plus#stn_dev = s:values[s:STD]
   " Report...
   " Gap depends on window width
-  let gap_and_labels = s:get_gap_and_labels(a:isBuffer)
-  let gap = repeat(" ", gap_and_labels[0])
+  call s:get_gap_and_labels(a:isBuffer)
+  let gap = repeat(" ", s:report_gap)
   " redraw " What is the purpose of redrawing?
   return
-  \    gap_and_labels[1][s:SUM] . ': ' . s:values[s:SUM]  . gap
-  \  . gap_and_labels[1][s:AVG] . ': ' . s:values[s:AVG]  . gap
-  \  . gap_and_labels[1][s:MIN] . ': ' . s:values[s:MIN]  . gap
-  \  . gap_and_labels[1][s:MAX] . ': ' . s:values[s:MAX]  . gap
-  \  . gap_and_labels[1][s:MED] . ': ' . s:values[s:MED]  . gap
-  \  . gap_and_labels[1][s:PRO] . ': ' . s:values[s:PRO]  . gap
-  \  . gap_and_labels[1][s:RAN] . ': ' . s:values[s:RAN]  . gap
-  \  . gap_and_labels[1][s:CNT] . ': ' . s:values[s:CNT]  . gap
-  \  . gap_and_labels[1][s:STD] . ': ' . s:values[s:STD]
+  \    s:labels[s:SUM] . ': ' . s:values[s:SUM]  . gap
+  \  . s:labels[s:AVG] . ': ' . s:values[s:AVG]  . gap
+  \  . s:labels[s:MIN] . ': ' . s:values[s:MIN]  . gap
+  \  . s:labels[s:MAX] . ': ' . s:values[s:MAX]  . gap
+  \  . s:labels[s:MED] . ': ' . s:values[s:MED]  . gap
+  \  . s:labels[s:PRO] . ': ' . s:values[s:PRO]  . gap
+  \  . s:labels[s:RAN] . ': ' . s:values[s:RAN]  . gap
+  \  . s:labels[s:CNT] . ': ' . s:values[s:CNT]  . gap
+  \  . s:labels[s:STD] . ': ' . s:values[s:STD]
 endfunction " }}}
 function! s:split_report() " {{{
   let s:output_buffer_name = "VMath Report"
@@ -261,8 +267,10 @@ endfunction " }}}
 
 " Convert times to raw seconds...
 function! s:str2sec(time) " {{{
+  " @param string in time format day:hour:min:sec
+  " @return string in seconds
   let components = split(a:time, ':')
-  let multipliers = [60, 60*60, 60*60*24]
+  let multipliers = [s:SECONDS_PER_MINUTE, s:SECONDS_PER_HOUR, s:SECONDS_PER_DAY]
   let duration = str2float(remove(components, -1))
   while len(components)
     let duration += 1.0 * remove(multipliers,0) * remove(components, -1)
@@ -276,25 +284,25 @@ function! s:sec2str(duration) " {{{
   let fraction -= duration
   let fracstr = substitute(string(fraction), '^0', '', '')
 
-  let sec = duration % 60
-  let duration = duration / 60
+  let sec = duration % s:SECONDS_PER_MINUTE
+  let duration = duration / s:SECONDS_PER_MINUTE
   if !duration
     return printf('0:%02d', sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  let s:values[s:MIN] = duration % 60
-  let duration = duration / 60
+  let min = duration % s:MINUTES_PER_HOUR
+  let duration = duration / s:MINUTES_PER_HOUR
   if !duration
-    return printf('%d:%02d', s:values[s:MIN], sec) . (fraction > 0 ? fracstr : '')
+    return printf('%d:%02d', min, sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  let hrs = duration % 24
-  let duration = duration / 24
+  let hrs = duration % s:HOURS_PER_DAY
+  let duration = duration / s:HOURS_PER_DAY
   if !duration
-    return printf('%d:%02d:%02d', hrs, s:values[s:MIN], sec) . (fraction > 0 ? fracstr : '')
+    return printf('%d:%02d:%02d', hrs, min, sec) . (fraction > 0 ? fracstr : '')
   endif
 
-  return printf('%d:%02d:%02d:%02d', duration, hrs, s:values[s:MIN], sec) . (fraction > 0 ? fracstr : '')
+  return printf('%d:%02d:%02d:%02d', duration, hrs, min, sec) . (fraction > 0 ? fracstr : '')
 endfunction " }}}
 
 " }}}
@@ -361,14 +369,14 @@ endfunction " }}}
 
 function! s:average_raw(numbers) " {{{
   " Compute average unrounded
-  " @param List[float] of numbers
+  " @param List[string] of numbers
   " @return float of average unrounded
   let summation = eval( len(a:numbers) ? join( a:numbers, ' + ') : '0' )
   return 1.0 * summation / max([len(a:numbers), 1])
 endfunction " }}}
 function! s:average(numbers) " {{{
   " Compute average with meaningful number of decimal places...
-  " @param List[float] of numbers
+  " @param List[string] of numbers
   " @return string of average with correct significant figures
   let avg = s:average_raw(a:numbers)
   return s:significant_figures(a:numbers, avg)

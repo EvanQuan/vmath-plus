@@ -20,6 +20,9 @@ Table of Contents
 1. [Installation](#installation)
 2. [Usage](#usage)
     - [Analyze](#analyze)
+         - [Numbers](#numbers)
+         - [Time](#time)
+         - [Storing results](#storing-results)
     - [Report](#report)
     - [Report variables](#report-variables)
     - [Buffer settings](#buffer-settings)
@@ -92,12 +95,16 @@ noremap <silent> <leader>mbr :call g:vmath_plus#report_buffer()<Return>
 selection (visual/line/block mode). As shown, I have normal mode mapped to
 calculate the numbers in the current paragraph.
 
-For example, if you were to visually select the following numbers and call
-`g:vmath_plus#analyze()`:
+#### Numbers
+
+You can calculate some useful metrics on a selection of numbers. If you were to
+visually select the following text and call `g:vmath_plus#analyze()`:
 
 ```
 1
+192.168.1.1
 1.0
+foo
 4
 ```
 
@@ -107,7 +114,30 @@ The following result would be echoed to the screen:
 s̲um: 6   a̲vg: 2.0   min̲: 1   max̲: 4   m̲ed: 1.0   p̲ro: 4   r̲an: 3   c̲nt: 3   std̲: 1.732051
 ```
 
-These values are then stored in the following registers:
+Note that both `192.168.1.1` and `foo` are ignored in the calculation as they
+are not numbers, even though they are included in the selected visual region.
+
+#### Time
+
+You can also calculate the same metrics on a selection of times. Times are `:`
+separated, in the form `day:hour:minute:sec`. For example, if the following
+text is analyzed:
+
+```
+0:22        // twenty-two seconds
+1:07        // one minute, seven seconds
+1:18:00     // one hour, eighteen minutes
+```
+
+the result would be:
+
+```
+s̲um: 1:19:29    a̲vg: 26:29.666667    min̲: 0:22    max̲: 1:18:00    m̲ed: 1:07    p̲ro: 79:20:12:00    r̲an: 1:17:38    c̲nt: 3    std̲: 44:36.401751
+```
+
+#### Storing results
+
+After analysis, the values are stored in the following yank registers:
 
 | Register | Value              |
 |:--------:|:------------------:|
