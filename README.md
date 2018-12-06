@@ -230,6 +230,12 @@ By default it is set to 2, meaning that the buffer label spacing will either be
 2 or greater if `g:vmath_plus#resize_buffer_labels = 0`. Non-positive gap sizes
 will be readjusted to 1.
 
+By default when the report buffer is created, the cursor stays in the original window. If you would like the cursor to move into the report buffer as soon as
+an analysis is done, you can set that with:
+```vim
+g:vmath_plus#move_cursor_to_buffer = 1
+```
+
 ## More Information
 
 More information about the talk from which the original `vmath` plugin was

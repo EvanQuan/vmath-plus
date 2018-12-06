@@ -1,7 +1,7 @@
 "============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.5.1
+" Version:    3.6.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -9,6 +9,13 @@
 " Press ENTER or za to toggle category folding/unfolding.
 " ============================================================================
 " Set up {{{
+
+" Preserve external compatibility options, then enable full vim compatibility...
+let s:save_cpo = &cpo
+set cpo&vim
+
+" }}}
+" Global variables {{{
 
 " If already loaded, we're done...
 if exists("g:vmath_plus#loaded")
@@ -30,9 +37,51 @@ elseif g:vmath_plus#min_buffer_gap < 1
   let g:vmath_plus#min_buffer_gap = 1
 endif
 
-" Preserve external compatibility options, then enable full vim compatibility...
-let s:save_cpo = &cpo
-set cpo&vim
+if !exists("g:vmath_plus#move_cursor_to_buffer")
+  let g:vmath_plus#move_cursor_to_buffer = 0
+endif
+
+" Global variables allow user to use analysis values however they want without
+" needing to check register contents. They are restored to script variables on
+" report in case the user tampers with them.
+let g:vmath_plus#sum = 0
+let g:vmath_plus#average = 0
+let g:vmath_plus#minimum = 0
+let g:vmath_plus#maximum = 0
+let g:vmath_plus#median = 0
+let g:vmath_plus#range = 0
+let g:vmath_plus#count = 0
+let g:vmath_plus#stn_dev = 0
+
+" }}}
+" Global functions {{{
+
+" Analyize {{{
+
+function! g:vmath_plus#analyze()
+  call s:analyze()
+  call g:vmath_plus#report()
+endfunction
+
+function! g:vmath_plus#analyze_buffer()
+  call s:analyze()
+  call g:vmath_plus#report_buffer()
+endfunction
+
+" }}}
+" Report {{{
+
+function! g:vmath_plus#report()
+  " redraw
+  echo s:get_report_message(0)
+  " redraw
+endfunction
+
+function! g:vmath_plus#report_buffer()
+  call s:split_report()
+endfunction
+
+" }}}
 
 " }}}
 " Script variables {{{
@@ -260,6 +309,11 @@ function! s:split_report() " {{{
   " make the buffer non modifiable
   setlocal readonly
   setlocal nomodifiable
+
+  " Return back to previous window
+  if !g:vmath_plus#move_cursor_to_buffer
+    execute "normal \<C-w>\<C-p>"
+  endif
 endfunction " }}}
 
 " }}}
@@ -442,51 +496,6 @@ function! s:minimum(numbers) " {{{
   endfor
   return minnum
 endfunction " }}}
-
-" }}}
-
-" }}}
-" Global variables {{{
-
-" Global variables allow user to use analysis values however they want without
-" needing to check register contents. They are restored to script variables on
-" report in case the user tampers with them.
-let g:vmath_plus#sum = 0
-let g:vmath_plus#average = 0
-let g:vmath_plus#minimum = 0
-let g:vmath_plus#maximum = 0
-let g:vmath_plus#median = 0
-let g:vmath_plus#range = 0
-let g:vmath_plus#count = 0
-let g:vmath_plus#stn_dev = 0
-
-" }}}
-" Global functions {{{
-
-" Analyize {{{
-
-function! g:vmath_plus#analyze()
-  call s:analyze()
-  call g:vmath_plus#report()
-endfunction
-
-function! g:vmath_plus#analyze_buffer()
-  call s:analyze()
-  call g:vmath_plus#report_buffer()
-endfunction
-
-" }}}
-" Report {{{
-
-function! g:vmath_plus#report()
-  " redraw
-  echo s:get_report_message(0)
-  " redraw
-endfunction
-
-function! g:vmath_plus#report_buffer()
-  call s:split_report()
-endfunction
 
 " }}}
 
