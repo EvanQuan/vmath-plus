@@ -1,7 +1,7 @@
 "=============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    3.6.0
+" Version:    4.0.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -56,30 +56,39 @@ let g:vmath_plus#stn_dev = 0
 " }}}
 " Global functions {{{
 
-" Analyize {{{
+" Analyze {{{
 
-function! g:vmath_plus#analyze()
+function! s:analyze_and_report()
   call s:analyze()
-  call g:vmath_plus#report()
+  call s:report()
 endfunction
 
-function! g:vmath_plus#analyze_buffer()
+function! s:analyze_and_report_buffer()
   call s:analyze()
-  call g:vmath_plus#report_buffer()
+  call s:report_buffer()
 endfunction
+
+nnoremap <Plug>(vmath_plus#normal_analyze) yip:call <SID>analyze_and_report()<Return>
+nnoremap <Plug>(vmath_plus#normal_analyze_buffer) yip:call <SID>analyze_and_report_buffer()<Return>
+
+vnoremap <Plug>(vmath_plus#visual_analyze) y:call <SID>analyze_and_report()<Return>
+vnoremap <Plug>(vmath_plus#visual_analyze_buffer) y:call <SID>analyze_and_report_buffer()<Return>
 
 " }}}
 " Report {{{
 
-function! g:vmath_plus#report()
+function! s:report()
   " redraw
   echo s:get_report_message(0)
   " redraw
 endfunction
 
-function! g:vmath_plus#report_buffer()
+function! s:report_buffer()
   call s:split_report()
 endfunction
+
+noremap <Plug>(vmath_plus#report) :call <SID>report()<Return>
+noremap <Plug>(vmath_plus#report_buffer) :call <SID>report_buffer()<Return>
 
 " }}}
 
@@ -131,7 +140,7 @@ let s:SECONDS_PER_DAY = s:SECONDS_PER_HOUR * s:HOURS_PER_DAY
 
 " Last analyze report is saved
 " Script variables ensure that report echoes the correct values even if the
-" registers are changed after the analisis.
+" registers are changed after the analysis.
 let s:values = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 " }}}
@@ -201,7 +210,7 @@ function! s:analyze() " {{{
   call setreg('c', s:values[s:CNT] )
   call setreg('d', s:values[s:STD] )
 
-  " Default paste buffer should depend on original contents (TODO)
+  " Default paste buffer should depend on original contents
   call setreg('', @s )
 endfunction " }}}
 " Report {{{

@@ -1,4 +1,4 @@
-*vmath-plus.txt*        For Vim version 8.1        Last change: 2018 December 23
+*vmath-plus.txt*        For Vim version 8.1         Last change: 2019 January 03
 
                                           _   _                                ~
                                          | | | |     _                         ~

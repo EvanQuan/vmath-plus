@@ -8,13 +8,6 @@ Here is a video demonstrating the original plugin from OSCON 2013:
 
 [![](https://img.youtube.com/vi/aHm36-na4-4/0.jpg)](https://www.youtube.com/watch?v=aHm36-na4-4&feature=youtu.be&t=1792)
 
-I have two main goals for this plugin:
-
-1. Add extra functionality on top of the already implemented
-   sum/average/min/max in vmath.
-2. Avoid recursive key mappings, and expression mappings. I like my `nnoremap`
-   and `vnoremap` and hate having to change them to accommodate for plugins.
-
 Table of Contents
 -----------------
 1. [Installation](#installation)
@@ -66,39 +59,44 @@ git clone https://github.com/EvanQuan/vmath-plus.git ~/.vim/bundle/vmath-plus
 
 ## Usage
 
-This plugin provides 4 functions:
-- `g:vmath_plus#analyze()`
-- `g:vmath_plus#analyze_buffer()`
-- `g:vmath_plus#report()`
-- `g:vmath_plus#report_buffer()`
+This plugin provides 6 functions:
+- `<Plug>(vmath_plus#normal_analyze)`
+- `<Plug>(vmath_plus#normal_analyze_buffer)`
+- `<Plug>(vmath_plus#visual_analyze)`
+- `<Plug>(vmath_plus#visual_analyze_buffer)`
+- `<Plug>(vmath_plus#report)`
+- `<Plug>(vmath_plus#report_buffer)`
 
-By default, they are not mapped to anything so you can map them to whatever you
-like. I personally use:
+By default, they are not mapped to anything so you can map them to whatever
+you like. I personally use:
 
 ```vim
 " Analyze
 "
-xnoremap <silent> <leader>ma y:call g:vmath_plus#analyze()<Return>
-xnoremap <silent> <leader>mba y:call g:vmath_plus#analyze_buffer()<Return>
-nnoremap <silent> <leader>ma vipy:call g:vmath_plus#analyze()<Return>
-nnoremap <silent> <leader>mba vipy:call g:vmath_plus#analyze_buffer()<Return>
+nmap <leader>ma <Plug>(vmath_plus#normal_analyze)
+nmap <leader>mba <Plug>(vmath_plus#normal_analyze_buffer)
+xmap <leader>ma <Plug>(vmath_plus#visual_analyze)
+xmap <leader>mba <Plug>(vmath_plus#visual_analyze_buffer)
 
 " Report
 "
-noremap <silent> <leader>mr :call g:vmath_plus#report()<Return>
-noremap <silent> <leader>mbr :call g:vmath_plus#report_buffer()<Return>
+nmap <leader>mr <Plug>(vmath_plus#report)
+nmap <leader>mbr <Plug>(vmath_plus#report_buffer)
 ```
+
+Note that the mapping must be bound with `nmap` and `xmap`.
 
 ### Analyze
 
-`g:vmath_plus#analyze()` calculates the numbers in your current visual
-selection (visual/line/block mode). As shown, I have normal mode mapped to
-calculate the numbers in the current paragraph.
+`<Plug>(vmath_plus#visual_analyze)` calculates the numbers in your current
+visual selection (visual/line/block mode). As shown, I have normal mode mapped
+to calculate the numbers in the current paragraph.
 
 #### Numbers
 
-You can calculate some useful metrics on a selection of numbers. If you were to
-visually select the following text and call `g:vmath_plus#analyze()`:
+You can calculate some useful metrics on a selection of numbers. If you were
+to visually select the following text and call
+`<Plug>(vmath_plus#visual_analyze)`:
 
 ```
 1
@@ -151,16 +149,17 @@ After analysis, the values are stored in the following yank registers:
 | c        | count              |
 | d        | standard deviation |
 
-which can be pasted with `"<register>p` in normal mode.
+which can be pasted with `"<register>p` in normal mode. For example, the sum
+can be pasted with `"sp`.
 
-`g:vmath_plus#analyze_buffer()` does the same thing but prints the result in
-a small read-only buffer at the bottom of the window instead of echoing it.
-The buffer is persistently open until you manually close it, and lets you copy
-and paste portions of it as you please.
+`<Plug>(vmath_plus#visual_analyze_buffer)` does the same thing but prints the
+result in a small read-only buffer at the bottom of the window instead of
+echoing it. The buffer is persistently open until you manually close it, and
+lets you copy and paste portions of it as you please.
 
 ### Report
 
-`g:vmath_plus#report()` reports the results of the most recent analysis. Since
+`<Plug>(vmath_plus#report)` reports the results of the most recent analysis. Since
 the values are only temporarily echoed, it can be useful to go back and see
 previous results without having to recalculate them or manually check the
 register contents.
@@ -169,7 +168,7 @@ The report message is dynamically calculated based on the window width at the
 time of the report. Spacing is increased to expand the window, and if wide
 enough, the value labels are expanded to their full names.
 
-`g:vmath_plus#report_buffer()` does the same thing but prints the result in
+`<Plug>(vmath_plus#report_buffer)` does the same thing but prints the result in
 a small read-only buffer at the bottom of the window instead of echoing it.
 The buffer is persistently open until you manually close it, and lets you copy
 and paste portions of it as you please.
@@ -198,25 +197,27 @@ proper values after any `vmath_plus` function call.
 
 ### Buffer settings
 
-By default, For the buffer functions `g:vmath_plus#analyze_buffer()` and
-`g:vmath_plus#report_buffer()`, the report buffer resizes to fit only the text
-of the report to be as unobtrusive as possible. If you do not want the buffer
-to be resized, you can disable it in your `vimrc` with:
+By default, For the buffer functions
+`<Plug>(vmath_plus#normal_analyze_buffer)`,
+`<Plug>(vmath_plus#visual_analyze_buffer)` and
+`<Plug>(vmath_plus#report_buffer)`, the report buffer resizes to fit only the
+text of the report to be as unobtrusive as possible. If you do not want the
+buffer to be resized, you can disable it in your `vimrc` with:
 ```vim
 let g:vmath_plus#resize_buffer = 0
 ```
 
-The report message expands to fit the window width in both the
-label spacing and in the label abbreviations. The aim is to the make the
-message both more readable for wide windows and to prevent it from overflowing
-to multiple lines for small windows and thus creating an annoying `Press ENTER
-or type command to continue` prompt.
+The report message expands to fit the window width in both the label spacing
+and in the label abbreviations. The aim is to the make the message both more
+readable for wide windows and to prevent it from overflowing to multiple lines
+for small windows and thus creating an annoying `Press ENTER or type command
+to continue` prompt.
 
 By default, the report buffer uses the same message as the echoed report.
-However, since it does not suffer from the single-line constraint as the echoed
-report, there is no need to shorten it. If you would like the report buffer to
-always use full labels no matter the window width, you can disable buffer label
-resizing in your `vimrc` with:
+However, since it does not suffer from the single-line constraint as the
+echoed report, there is no need to shorten it. If you would like the report
+buffer to always use full labels no matter the window width, you can disable
+buffer label resizing in your `vimrc` with:
 ```vim
 let g:vmath_plus#resize_buffer_labels = 0
 ```
@@ -226,11 +227,12 @@ with:
 ```vim
 let g:vmath_plus#min_buffer_gap = 2
 ```
-By default it is set to 2, meaning that the buffer label spacing will either be
-2 or greater if `g:vmath_plus#resize_buffer_labels = 0`. Non-positive gap sizes
-will be readjusted to 1.
+By default it is set to 2, meaning that the buffer label spacing will either
+be 2 or greater if `g:vmath_plus#resize_buffer_labels = 0`. Non-positive gap
+sizes will be readjusted to 1.
 
-By default when the report buffer is created, the cursor stays in the original window. If you would like the cursor to move into the report buffer as soon as
+By default when the report buffer is created, the cursor stays in the original
+window. If you would like the cursor to move into the report buffer as soon as
 an analysis is done, you can set that with:
 ```vim
 g:vmath_plus#move_cursor_to_buffer = 1
