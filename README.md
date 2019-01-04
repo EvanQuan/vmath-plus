@@ -73,15 +73,15 @@ you like. I personally use:
 ```vim
 " Analyze
 "
-nmap <leader>ma <Plug>(vmath_plus#normal_analyze)
-nmap <leader>mba <Plug>(vmath_plus#normal_analyze_buffer)
-xmap <leader>ma <Plug>(vmath_plus#visual_analyze)
-xmap <leader>mba <Plug>(vmath_plus#visual_analyze_buffer)
+nmap <silent> <leader>ma <Plug>(vmath_plus#normal_analyze)
+nmap <silent> <leader>mba <Plug>(vmath_plus#normal_analyze_buffer)
+xmap <silent> <leader>ma <Plug>(vmath_plus#visual_analyze)
+xmap <silent> <leader>mba <Plug>(vmath_plus#visual_analyze_buffer)
 
 " Report
 "
-nmap <leader>mr <Plug>(vmath_plus#report)
-nmap <leader>mbr <Plug>(vmath_plus#report_buffer)
+nmap <silent> <leader>mr <Plug>(vmath_plus#report)
+nmap <silent> <leader>mbr <Plug>(vmath_plus#report_buffer)
 ```
 
 Note that the mapping must be bound with `nmap` and `xmap`.

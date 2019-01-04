@@ -1,4 +1,4 @@
-*vmath-plus.txt*        For Vim version 8.1         Last change: 2019 January 03
+*vmath-plus.txt*        For Vim version 8.1         Last change: 2019 January 04
 
                                           _   _                                ~
                                          | | | |     _                         ~
@@ -16,8 +16,30 @@
 ==============================================================================
 CONTENTS                                                   *vmath-plus-contents*
 
+    1. Intro............................|vmath-plus-intro|
+    2. Usage............................|vmath-plus-usage|
+        2.1. Analyze....................|vmath-plus-analyze|
+        2.2. Report.....................|vmath-plus-report|
+        2.3. Report Variables...........|vmath-plus-report-variables|
+        2.4. Buffer Settings............|vmath-plus-report-buffer-settings|
 
 ==============================================================================
-1. Intro                                                            *vmath-plus*
+1. Intro                                                      *vmath-plus-intro*
+
+==============================================================================
+2. Usage                                                      *vmath-plus-usage*
+
+------------------------------------------------------------------------------
+2.1 Analyze                                                 *vmath-plus-analyze*
+
+------------------------------------------------------------------------------
+2.2 Report                                                   *vmath-plus-report*
+
+------------------------------------------------------------------------------
+2.3 Report Variables                               *vmath-plus-report-variables*
+
+------------------------------------------------------------------------------
+2.4 Buffer Settings                          *vmath-plus-report-buffer-settings*
+
 ==============================================================================
 vim:tw=78:ts=8:ft=help:noet:nospell:expandtab
