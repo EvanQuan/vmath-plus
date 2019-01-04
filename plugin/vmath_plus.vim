@@ -1,7 +1,7 @@
 "=============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    4.0.0
+" Version:    4.0.1
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -21,7 +21,6 @@ set cpo&vim
 if exists("g:vmath_plus#loaded")
   finish
 endif
-let g:vmath_plus#loaded = 1
 
 if !exists("g:vmath_plus#resize_buffer")
   let g:vmath_plus#resize_buffer = 1
@@ -38,7 +37,7 @@ elseif g:vmath_plus#min_buffer_gap < 1
 endif
 
 if !exists("g:vmath_plus#move_cursor_to_buffer")
-  let g:vmath_plus#move_cursor_to_buffer = 0
+  let g:vmath_plus#move_cursor_to_buffer = 1
 endif
 
 " Global variables allow user to use analysis values however they want without
@@ -514,4 +513,5 @@ endfunction " }}}
 " Restore previous external compatibility options
 let &cpo = s:save_cpo
 
+let g:vmath_plus#loaded = 1
 " }}}
