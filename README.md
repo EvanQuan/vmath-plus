@@ -73,24 +73,26 @@ you like. I personally use:
 ```vim
 " Analyze
 "
-nmap <silent> <leader>ma <Plug>(vmath_plus#normal_analyze)
-nmap <silent> <leader>mba <Plug>(vmath_plus#normal_analyze_buffer)
-xmap <silent> <leader>ma <Plug>(vmath_plus#visual_analyze)
-xmap <silent> <leader>mba <Plug>(vmath_plus#visual_analyze_buffer)
+nmap <leader>ma <Plug>(vmath_plus#normal_analyze)
+nmap <leader>mba <Plug>(vmath_plus#normal_analyze_buffer)
+xmap <leader>ma <Plug>(vmath_plus#visual_analyze)
+xmap <leader>mba <Plug>(vmath_plus#visual_analyze_buffer)
 
 " Report
 "
-nmap <silent> <leader>mr <Plug>(vmath_plus#report)
-nmap <silent> <leader>mbr <Plug>(vmath_plus#report_buffer)
+nmap <leader>mr <Plug>(vmath_plus#report)
+nmap <leader>mbr <Plug>(vmath_plus#report_buffer)
 ```
 
-Note that the mapping must be bound with `nmap` and `xmap`.
+Note that the mapping must be bound with `nmap` and `xmap/vmap`.
 
 ### Analyze
 
 `<Plug>(vmath_plus#visual_analyze)` calculates the numbers in your current
-visual selection (visual/line/block mode). As shown, I have normal mode mapped
-to calculate the numbers in the current paragraph.
+visual selection (visual/line/block mode).
+
+`<Plug>(vmath_plus#normal_analyze)` selects the current paragraph as its
+visual selection.
 
 #### Numbers
 

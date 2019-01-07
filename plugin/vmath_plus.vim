@@ -1,7 +1,7 @@
 "=============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    4.0.1
+" Version:    4.0.2
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -67,11 +67,11 @@ function! s:analyze_and_report_buffer()
   call s:report_buffer()
 endfunction
 
-nnoremap <Plug>(vmath_plus#normal_analyze) yip:call <SID>analyze_and_report()<Return>
-nnoremap <Plug>(vmath_plus#normal_analyze_buffer) yip:call <SID>analyze_and_report_buffer()<Return>
+nnoremap <silent> <Plug>(vmath_plus#normal_analyze) yip:call <SID>analyze_and_report()<Return>
+nnoremap <silent> <Plug>(vmath_plus#normal_analyze_buffer) yip:call <SID>analyze_and_report_buffer()<Return>
 
-vnoremap <Plug>(vmath_plus#visual_analyze) y:call <SID>analyze_and_report()<Return>
-vnoremap <Plug>(vmath_plus#visual_analyze_buffer) y:call <SID>analyze_and_report_buffer()<Return>
+vnoremap <silent> <Plug>(vmath_plus#visual_analyze) y:call <SID>analyze_and_report()<Return>
+vnoremap <silent> <Plug>(vmath_plus#visual_analyze_buffer) y:call <SID>analyze_and_report_buffer()<Return>
 
 " }}}
 " Report {{{
