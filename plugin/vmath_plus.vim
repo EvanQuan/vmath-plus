@@ -1,7 +1,7 @@
 "=============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    4.1.0
+" Version:    4.1.1
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -301,6 +301,7 @@ function! s:split_report() " {{{
   setlocal nonumber
   setlocal norelativenumber
   setlocal showbreak=""
+  setlocal colorcolumn=""
 
   " clear the buffer and make it modifiable for terminal output
   setlocal noreadonly
