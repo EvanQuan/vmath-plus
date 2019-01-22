@@ -156,8 +156,8 @@ can be pasted with `"sp`.
 
 `<Plug>(vmath_plus#visual_analyze_buffer)` does the same thing but prints the
 result in a small read-only buffer at the bottom of the window instead of
-echoing it. The buffer is persistently open until you manually close it, and
-lets you copy and paste portions of it as you please.
+echoing it. The buffer is persistently open until you manually close it with
+`q`, and lets you copy and paste portions of it as you please.
 
 ### Report
 
@@ -172,8 +172,8 @@ enough, the value labels are expanded to their full names.
 
 `<Plug>(vmath_plus#report_buffer)` does the same thing but prints the result in
 a small read-only buffer at the bottom of the window instead of echoing it.
-The buffer is persistently open until you manually close it, and lets you copy
-and paste portions of it as you please.
+The buffer is persistently open until you manually close it with `q`, and lets
+you copy and paste portions of it as you please.
 
 ### Report variables
 

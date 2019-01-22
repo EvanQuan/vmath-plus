@@ -1,7 +1,7 @@
 "=============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    4.0.2
+" Version:    4.1.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -314,6 +314,8 @@ function! s:split_report() " {{{
     execute 'resize' . line('$')
   endif
 
+  " Allow easy quit with q
+  nnoremap <silent> <buffer> q :q<Return>
   " make the buffer non modifiable
   setlocal readonly
   setlocal nomodifiable
