@@ -1,7 +1,7 @@
 "=============================================================================
 " File:       vmath_plus.vim
 " Maintainer: https://github.com/EvanQuan/vmath-plus/
-" Version:    4.1.1
+" Version:    4.2.0
 "
 " A Vim plugin for math on visual regions. An extension of Damian Conway's
 " vmath plugin.
@@ -279,7 +279,7 @@ function! s:get_report_message(isBuffer) " {{{
 endfunction " }}}
 function! s:split_report() " {{{
   let s:output_buffer_name = "VMath Report"
-  let s:output_buffer_filetype = "output"
+  let s:output_buffer_filetype = "vmath_plus"
   " reuse existing buffer window if it exists otherwise create a new one
   if !exists("s:buf_nr") || !bufexists(s:buf_nr)
     silent execute 'botright new ' . s:output_buffer_name
@@ -297,11 +297,13 @@ function! s:split_report() " {{{
   setlocal noswapfile
   setlocal nobuflisted
   setlocal winfixheight
-  setlocal cursorline " make it easy to distinguish
+  setlocal nocursorline
+  setlocal nocursorcolumn
   setlocal nonumber
   setlocal norelativenumber
   setlocal showbreak=""
   setlocal colorcolumn=""
+  setlocal nolist
 
   " clear the buffer and make it modifiable for terminal output
   setlocal noreadonly
